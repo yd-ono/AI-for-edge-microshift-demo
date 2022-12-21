@@ -90,7 +90,7 @@ Download MicroShift binary:
 
 ```
 export ARCH=arm64
-export VERSION=$(curl -s https://api.github.com/repos/redhat-et/microshift/releases | grep tag_name | head -n 1 | cut -d '"' -f 4)
+export VERSION=$(curl -L -s https://api.github.com/repos/redhat-et/microshift/releases | grep tag_name | head -n 1 | cut -d '"' -f 4)
 curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-${ARCH}
 mv microshift-linux-${ARCH} /usr/bin/microshift; chmod 755 /usr/bin/microshift
 ```

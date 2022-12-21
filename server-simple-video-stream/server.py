@@ -16,6 +16,8 @@ app.logger.setLevel(logging.INFO)
 
 cap = cv2.VideoCapture(4)
 
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
 @app.route("/")
 def hello_world():

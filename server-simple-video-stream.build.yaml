@@ -1,0 +1,28 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: server
+spec: {}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: cam
+  labels:
+    name: cam
+spec:
+  triggers:
+    - type: ConfigChange
+  source:
+    contextDir: "server-simple-video-stream/"
+    type: Git
+    git:
+      uri: 'https://github.com/rbo/AI-for-edge-microshift-demo.git'
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: "Containerfile.local"
+  output:
+    to:
+      kind: ImageStreamTag
+      name: 'server:latest'

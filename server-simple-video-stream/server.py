@@ -1,29 +1,44 @@
-#!/usr/bin/python3
+# This is the Peak front-end.
+
 from flask import Flask
+from flask import render_template
 from flask import request
 from flask import Response
 import logging
 import threading
 import time
 import cv2
+import os
 
 # frame to be shared via mjpeg server out
-outputFrames = {}
+output_frame = None
 lock = threading.Lock()
 
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
-cap = cv2.VideoCapture(4)
+cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)))
 
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+if not (cap.isOpened()):
+    app.logger.critical("Could not open video device")
 
-@app.route("/")
-def hello_world():
-    threading.Thread(target=streamer_thread, name=None, args=['4']).start()
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, os.environ.get('CAP_PROP_FRAME_WIDTH', 1920))
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, os.environ.get('CAP_PROP_FRAME_HEIGHT', 1080))
 
-    return "<p>Hello, World!</p><a href='/video_feed'>Link</a>"
+# app.secret_key = os.environ['FLASK_SECRET']
+
+@app.route('/healthz')
+def healthz():
+    """
+    Check the health of this peakweb instance. OCP will hit this endpoint to verify the readiness
+    of the peakweb pod.
+    """
+    return 'OK'
+
+@app.route('/')
+def index():
+    threading.Thread(target=streamer_thread, name=None, args=[os.environ.get('VIDEO_DEVICE_ID', '0')]).start()
+    return render_template('index.html')
 
 def streamer_thread(device_id):
 
@@ -35,10 +50,10 @@ def streamer_thread(device_id):
 
 
 def process_streamer_frame(frame,device_id):
-    global outputFrames, lock
-    #frame_out = find_and_mark_faces(frame, app.logger, cam_ip)
+    global output_frame, lock
+    # frame_out = find_and_mark_faces(frame, app.logger, cam_ip)
     with lock:
-        outputFrames[device_id] = frame.copy()
+        output_frame = frame.copy()
 
 
 @app.route("/video_feed")
@@ -51,26 +66,20 @@ def video_feed():
 
 def generate_video_feed():
     # grab global references to the output frame and lock variables
-    global outputFrames, lock
+    global output_frame, lock
     # loop over frames from the output stream
     while True:
         # wait until the lock is acquired
         with lock:
             # check if the output frame is available, otherwise skip
             # the iteration of the loop
-            if not outputFrames:
+
+            if output_frame is None:
                 time.sleep(0.01)
                 continue
 
             # encode the frame in JPEG format
-
-            frames = []
-            for camIP, frame in sorted(outputFrames.items()):
-                frames.append(frame)
-
-            all_cams = cv2.hconcat(frames)
-
-            (flag, encodedImage) = cv2.imencode(".jpg", all_cams)
+            (flag, encodedImage) = cv2.imencode(".jpg", output_frame)
 
             # ensure the frame was successfully encoded
             if not flag:

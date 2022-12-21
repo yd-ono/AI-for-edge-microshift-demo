@@ -1,0 +1,48 @@
+{%- extends "base.html" %}
+{% set active_page = "history" %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="history-pagination">
+    <ul class="pagination pagination-sm float-right">
+      <li {% if page == 1 %}class="page-item disabled"{% else %}class="page-item"{% endif %}>
+      <a class="page-link" href="/history?page={{ page - 1 }}" tabindex="">Previous</a>
+      </li>
+      {%- for i in range(pages) %}
+      {%- set pagenum = i+1 %}
+      <li {% if page == pagenum %}class="page-item active"{% else %}class="page-item"{% endif %}>
+      <a  class="page-link" href="/history?page={{ pagenum}}">{{ pagenum }}</a></li>
+      {%- endfor %}
+      <li {% if page == pages %}class="page-item disabled"{% else %}class="page-item"{% endif %}>
+        <a class="page-link" href="/history?page={{ page + 1 }}">Next</a>
+      </li>
+    </ul>
+  </nav>
+  <table class="table">
+    <thead>
+      <tr>
+        <th class="w-25">Initiated</th>
+        <th>Id</th>
+        <th class="w-50">Description</th>
+        <th>Requests</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {%- for suite in suites %}
+      <tr>
+        <td class="w-25">{{ suite['initiated'][:19] }}</td>
+        <td>{{ suite['uuid'][:8]}}</td>
+        <td class="w-50">{{ suite['description'] }}</td>
+        <td>{{ suite['requests'] }}</td>
+        <td class="text-center">
+          <a href="/stop_suite?uuid={{ suite['uuid'] }}">
+            <span class="fa fa-stop-circle"></span>
+          </a>
+        </td>
+        <tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endblock %}

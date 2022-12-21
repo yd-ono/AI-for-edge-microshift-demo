@@ -1,0 +1,7 @@
+
+{%- extends "base.html" %}
+{% set active_page = "home" %}
+
+{% block content %}
+<img src="{{ url_for('video_feed') }}" class="img-fluid shadow-1g" alt="Camera" loading="lazy">
+{%- endblock %}

@@ -1,33 +1,25 @@
 <!DOCTYPE HTML>
-
-{% set navigation_bar = [
-  ('/', 'home', 'Home'),
-  ('/new_question/', 'new_question', 'New Question'),
-] -%}
-
-{% set active_page = active_page|default('home') -%}
-
 <html lang="en">
 <head>
- <title>RHTE..</title>
+ <title>Red Hat TE 2023 - Image recognition on the Edge with Red Hat Device Edge (MicroShift) & Nvidia</title>
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
- <link rel="stylesheet" href="/static/dashboard.css">
  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
  {% block head %}{% endblock %}
 </head>
 <body>
   <main>
-  <div class="text-center">
-    <h1 class="display-1 fw-bold">
-      <img src="../static/redhat.png" width="250" alt="Red Hat Inc Logo"/>
-    </h1>
-    <div class="overflow-hidden">
-      <div class="container px-5">
-        {% block content %}{% endblock %}
-      </div>
-    </div>
+  <div
+    class="bg-image d-flex justify-content-center align-items-center"
+    style="
+      background-image: url('{{ url_for('static', filename='1-Wallpaper-Red_Hat-1920x1080_Desktop-White.png') }}');
+      background-repeat: no-repeat;
+      background-size: auto 100%;
+      height: 100vh;
+    "
+  >
+  {% block content %}{% endblock %}
   </div>
   </main>
 </body>

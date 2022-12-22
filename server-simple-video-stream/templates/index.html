@@ -1,7 +1,5 @@
-
 {%- extends "base.html" %}
-{% set active_page = "home" %}
-
 {% block content %}
+<img src="{{ url_for('static', filename='te-wordmark-700x500-emea.png') }}" class="img-fluid shadow-1g" alt="Logo" loading="lazy">
 <img src="{{ url_for('video_feed') }}" class="img-fluid shadow-1g" alt="Camera" loading="lazy">
 {%- endblock %}

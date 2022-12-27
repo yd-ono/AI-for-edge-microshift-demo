@@ -4,3 +4,4 @@ ADD index.html /src/
 ADd copy-content.sh /
 ENTRYPOINT "/copy-content.sh"
 
+

@@ -50,7 +50,7 @@ spec:
           - -c
           - |
 
-            /usr/libexec/s2i/run
+            nginx -g "daemon off;"
   triggers:
   - type: ConfigChange
 ---
@@ -84,7 +84,4 @@ spec:
     kind: "Service"
     name: simple-nginx
     weight: null
-  tls:
-    termination: Edge
-    insecureEdgeTerminationPolicy: Redirect
 

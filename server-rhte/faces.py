@@ -2,7 +2,6 @@ import cv2
 import face_recognition
 import numpy as np
 
-
 # TODO, traverse directories and generate automatically
 ricky1_face_encoding = face_recognition.face_encodings(
     face_recognition.load_image_file("faces/Ricardo Noriega/ricky1.jpg"))[0]
@@ -10,14 +9,19 @@ ricky1_face_encoding = face_recognition.face_encodings(
 ajo1_face_encoding = face_recognition.face_encodings(
     face_recognition.load_image_file("faces/Miguel Angel Ajo/ajo1.jpg"))[0]
 
+rbohne_face_encoding = face_recognition.face_encodings(
+    face_recognition.load_image_file("faces/Robert Bohne/rbohne.jpg"))[0]
+
 known_face_encodings = [
         ricky1_face_encoding,
         ajo1_face_encoding,
+        rbohne_face_encoding,
         ]
 
 known_face_names = [
         "Ricardo Noriega",
-        "Miguel Angel Ajo"
+        "Miguel Angel Ajo",
+        "Robert Bohne"
     ]
 
 RATIO = 0.25

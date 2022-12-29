@@ -20,7 +20,8 @@ lock = threading.Lock()
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
-cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)))
+#cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)))
+cap = cv2.VideoCapture(cv2.CAP_V4L2)
 
 if not (cap.isOpened()):
     app.logger.critical("Could not open video device")
@@ -54,11 +55,8 @@ def streamer_thread(device_id):
             time.sleep(3)
             break
 
-        app.logger.info("TYPE: %s",type(frame))
         if frame is not None:
             process_streamer_frame(frame)
-
-        time.sleep(3)
 
 def process_streamer_frame(frame):
     global output_frame, lock

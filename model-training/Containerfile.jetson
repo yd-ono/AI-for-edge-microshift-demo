@@ -1,22 +1,14 @@
-# FROM quay.io/rbohne/ai-for-edge-microshift-demo:l4y-cude-dlib AS TRAINER
-FROM quay.io/rbohne/jetson-xavier-nx-dlib:base AS TRAINER
+FROM quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib AS TRAINER
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-                       python3-yaml \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-COPY data/ /
-
-COPY model-training.py /
+ADD data/ /data/
+ADD model-training.py /data/
 
 WORKDIR /data/
 
-RUN python3 /model-training.py
+RUN python3 /data/model-training.py
 
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
-COPY --from TRAINER /model.data /src/
+COPY --from=TRAINER /data/model.data /src/
 ADD copy-content.sh /
 ENTRYPOINT "/copy-content.sh"

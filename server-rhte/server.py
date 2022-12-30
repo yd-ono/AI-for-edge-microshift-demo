@@ -20,6 +20,8 @@ lock = threading.Lock()
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
+load_known_faces(os.environ.get('MODEL_FILENAME', 'model.data'),app.logger)
+
 # v4l2-ctl --list-devices
 # v4l2-ctl -d /dev/video0 --list-formats-ext
 cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)),cv2.CAP_V4L2)

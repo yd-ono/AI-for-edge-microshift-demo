@@ -20,12 +20,16 @@ lock = threading.Lock()
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 
-#cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)))
-cap = cv2.VideoCapture(cv2.CAP_V4L2)
+# v4l2-ctl --list-devices
+# v4l2-ctl -d /dev/video0 --list-formats-ext
+cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)),cv2.CAP_V4L2)
 
 if not (cap.isOpened()):
     app.logger.critical("Could not open video device")
 
+
+# MJPG: gets alot Corrupt JPEG data: 1060 extraneous bytes before marker 0xd9
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, os.environ.get('CAP_PROP_FRAME_WIDTH', 1920))
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, os.environ.get('CAP_PROP_FRAME_HEIGHT', 1080))
 

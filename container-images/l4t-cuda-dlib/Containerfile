@@ -37,6 +37,12 @@ RUN wget -q http://dlib.net/files/dlib-${DLIB_VERSION}.tar.bz2 \
     && cd ../ \
     && rm -r dlib-${DLIB_VERSION}
 
-RUN pip3 install face_recognition
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3-pil python3-pip python3-numpy \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && pip install face_recognition
 
 CMD ["echo", "This is a base image ;-)"]

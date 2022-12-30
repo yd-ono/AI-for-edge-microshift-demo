@@ -12,7 +12,7 @@ RUN rm -v  /etc/apt/sources.list.d/cuda.list \
                        libcublas-dev-11-4 libcusolver-dev-11-4 cuda-nvcc-11-4 \
                        cuda-cudart-dev-11-4 cuda-compiler-11-4 cmake git libcudnn8-dev \
                        libopenblas-dev liblapack-dev libcurand-dev-11-4 \
-                       python3-all-dev python3-setuptools \
+                       python3-all-dev python3-setuptools python3-yaml \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -37,12 +37,6 @@ RUN wget -q http://dlib.net/files/dlib-${DLIB_VERSION}.tar.bz2 \
     && cd ../ \
     && rm -r dlib-${DLIB_VERSION}
 
+RUN pip3 install face_recognition
+
 CMD ["echo", "This is a base image ;-)"]
-
-#RUN pip3 install face_recognition
-#RUN pip3 install flask
-
-#RUN apt-get install -y python3-markupsafe nvidia-opencv python3-opencv\
-#                       python3-requests
-
-#RUN python3 -c 'import cv2; print(cv2.getBuildInformation())' | grep -i cuda

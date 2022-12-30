@@ -12,13 +12,13 @@ RATIO = 0.25
 
 def load_known_faces(filename,logger):
     global known_face_encodings, known_face_metadata
-
+    logger.info("Load model from disk: %s" % filename)
     try:
         with open(filename, "rb") as face_data_file:
             known_face_encodings, known_face_metadata = pickle.load(face_data_file)
             logger.info("Known faces loaded from disk.")
     except FileNotFoundError as e:
-        logger.critical("No previous face data found - starting with a blank known face list.")
+        logger.critical("No model face found")
         pass
 
 

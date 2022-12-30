@@ -2,7 +2,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   creationTimestamp: null
-  name: cam-privileged
+  name: webapp-privileged
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -10,7 +10,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: privileged
-  namespace: cam
+  namespace: webapp
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -25,39 +25,43 @@ metadata:
     app.openshift.io/route-disabled: "false"
     app.openshift.io/vcs-ref: ""
     app.openshift.io/vcs-uri: https://github.com/rbo/AI-for-edge-microshift-demo
-    deployment.kubernetes.io/revision: "2"
-    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"server:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"cam\")].image","pause":"false"}]'
-    openshift.io/generated-by: OpenShiftWebConsole
+    # image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"server:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"webapp\")].image","pause":"false"}]'
   labels:
-    app: cam
-    app.kubernetes.io/component: cam
-    app.kubernetes.io/instance: cam
-    app.kubernetes.io/name: cam
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
     app.kubernetes.io/part-of: python
     app.openshift.io/runtime: python
-    app.openshift.io/runtime-version: 3.9-ubi8
-  name: cam
+  name: webapp
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: cam
+      app: webapp
   strategy:
     type: Recreate
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: cam
-        deployment: cam
+        app: webapp
+        deployment: webapp
     spec:
       serviceAccountName: privileged
+      initContainers:
+      - image: quay.io/rbohne/ai-for-edge-microshift-demo:model
+        imagePullPolicy: IfNotPresent
+        name: model
+        volumeMounts:
+        - name: model
+          mountPath: /dst/
       containers:
-        - image: image-registry.openshift-image-registry.svc:5000/dummy/dummy:latest
-          imagePullPolicy: Always
-          name: cam
+        - image: quay.io/rbohne/ai-for-edge-microshift-demo:webapp
+          imagePullPolicy: IfNotPresent
+          name: webapp
           ports:
             - containerPort: 5000
               protocol: TCP
@@ -67,13 +71,19 @@ spec:
           volumeMounts:
           - mountPath: /dev/video0
             name: dev-video0
+          - mountPath: /model/
+            name: model
+          env:
+          - name: MODEL_FILENAME
+            value: /model/model.data
           securityContext:
             privileged: true
-
       volumes:
       - name: dev-video0
         hostPath:
           path: /dev/video0
+      - name: "model"
+        emptyDir: {}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -87,14 +97,13 @@ metadata:
     app.openshift.io/vcs-ref: ""
     app.openshift.io/vcs-uri: https://github.com/rbo/AI-for-edge-microshift-demo
   labels:
-    app: cam
-    app.kubernetes.io/component: cam
-    app.kubernetes.io/instance: cam
-    app.kubernetes.io/name: cam
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
     app.kubernetes.io/part-of: python
     app.openshift.io/runtime: python
-    app.openshift.io/runtime-version: 3.9-ubi8
-  name: cam
+  name: webapp
 spec:
   internalTrafficPolicy: Cluster
   ipFamilies:
@@ -106,8 +115,8 @@ spec:
       protocol: TCP
       targetPort: 5000
   selector:
-    app: cam
-    deployment: cam
+    app: webapp
+    deployment: webapp
   sessionAffinity: None
   type: ClusterIP
 ---
@@ -117,22 +126,18 @@ metadata:
   annotations:
     openshift.io/host.generated: "true"
   labels:
-    app: cam
-    app.kubernetes.io/component: cam
-    app.kubernetes.io/instance: cam
-    app.kubernetes.io/name: cam
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
     app.kubernetes.io/part-of: python
     app.openshift.io/runtime: python
-    app.openshift.io/runtime-version: 3.9-ubi8
-  name: cam
+  name: webapp
 spec:
   port:
     targetPort: 5000-tcp
-  tls:
-    insecureEdgeTerminationPolicy: Redirect
-    termination: edge
   to:
     kind: Service
-    name: cam
+    name: webapp
     weight: 100
   wildcardPolicy: None

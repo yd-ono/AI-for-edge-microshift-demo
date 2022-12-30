@@ -2,13 +2,14 @@ FROM quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-                       python3-markupsafe nvidia-opencv python3-opencv\
-                       python3-requests
+                       python3-markupsafe nvidia-opencv python3-opencv \
+                       python3-requests \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt /
+
+RUN pip install --no-cache-dir -r /requirements.txt
 
 ENV FLASK_APP=server \
     LC_ALL=C.UTF-8 \

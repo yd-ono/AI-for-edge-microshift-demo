@@ -8,7 +8,7 @@ buildah manifest add \
     docker://quay.io/rbohne/ai-for-edge-microshift-demo:webapp-cpu-only-x86_64
 
 buildah manifest add \
-    --arch aarch64 \
+    --arch arm64 \
     ai-for-edge-microshift-demo-webapp-cpu-only \
     docker://quay.io/rbohne/ai-for-edge-microshift-demo:webapp-cpu-only-aarch64
 

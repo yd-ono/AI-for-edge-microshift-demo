@@ -11,7 +11,7 @@ This demo repository is structured into three different folders:
 
 ## Running MicroShift (jetson L4T)
 
-At this point, we have programmed our ESP32 cameras. We assume that you have installed the standard L4T operating system specific to your Jetson board, and it is ready to install some packages (as root).
+We assume that you have installed the standard L4T operating system specific to your Jetson board, and it is ready to install some packages (as root).
 
 ```
 apt install -y curl jq runc iptables conntrack nvidia-container-runtime nvidia-container-toolkit
@@ -23,10 +23,10 @@ Disable firewalld:
 systemctl disable --now firewalld
 ```
 
-Install CRI-O as our container runtime:
+Install CRI-O 1.21 as our container runtime:
 
 ```
-curl https://raw.githubusercontent.com/cri-o/cri-o/main/scripts/get | bash
+curl https://raw.githubusercontent.com/cri-o/cri-o/v1.21.7/scripts/get | bash
 
 ```
 
@@ -58,7 +58,8 @@ Download MicroShift binary:
 
 ```
 export ARCH=arm64
-export VERSION=$(curl -L -s https://api.github.com/repos/redhat-et/microshift/releases | grep tag_name | head -n 1 | cut -d '"' -f 4)
+export VERSION=4.8.0-0.microshift-2022-02-02-194009
+
 curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-${ARCH}
 mv microshift-linux-${ARCH} /usr/bin/microshift; chmod 755 /usr/bin/microshift
 ```
@@ -89,7 +90,7 @@ systemctl enable microshift.service --now
 Download and install the oc client:
 
 ```
-curl -LO https://mirror.openshift.com/pub/openshift-v4/arm64/clients/ocp/stable/openshift-client-linux.tar.gz
+curl -LO https://mirror.openshift.com/pub/openshift-v4/arm64/clients/ocp/stable-4.9/openshift-client-linux.tar.gz
 tar xvf openshift-client-linux.tar.gz
 chmod +x oc
 mv oc /usr/local/bin
@@ -117,14 +118,15 @@ openshift-service-ca            service-ca-7764c85869-dvdtm           1/1     Ru
 
 Now, we have our cloud-native platform ready to run workloads. Think about this: we have an edge computing optimized Kubernetes distribution ready to run an AI workload, and make use of the integrated GPU from the NVIDIA Jetson board. It's awesome!
 
-## AI models
+## AI Web App
 
-The final step is to deploy the AI models that will perform face detection and face recognition. This pod is basically a Flask server that will get the streams of the cameras once they are connected, and start working on a discrete number of frames.
+The final step is to deploy the AI Web App that will perform face detection and face recognition. This pod is basically a Flask server that will get the streams of the cameras once they are connected, and start working on a discrete number of frames.
 
 Let's deploy the AI models on MicroShift:
 
 ```
-oc apply -f server/cam-server.yaml
+oc new-project ai-for-edge
+oc apply -f webapp.deploy.yaml
 ```
 
 After few seconds:
@@ -133,15 +135,15 @@ After few seconds:
 oc get pods
 
 NAME                         READY   STATUS    RESTARTS   AGE
-cameras-ap-b6b6c9c96-krm45   1/1     Running   0          4m37s
-camserver-cc996fd86-pkm45    1/1     Running   0          42s
+webapp-67dd6b46fc-bqgbs   1/1     Running   2          2m33s
 ```
 
-We also need to create a service and expose a route for this pod:
+Check the hostname of the route:
 
 ```
-oc expose deployment camserver
-oc expose service camserver --hostname microshift-cam-reg.local
+$ oc get routes
+NAME     HOST/PORT                          PATH   SERVICES   PORT       TERMINATION   WILDCARD
+webapp   webapp-ai-for-edge.cluster.local          webapp     5000-tcp                 None
 ```
 
 MicroShift has mDNS built-in capabilities, and this route will be automatically announced, so the cameras can register to this service, and start streaming video.
@@ -149,30 +151,29 @@ MicroShift has mDNS built-in capabilities, and this route will be automatically 
 Looking at the camserver logs, we can see this registration process:
 
 ```
-oc logs camserver-cc996fd86-pkm45
+oc logs -f deployment/webapp -c webapp
 
- * Serving Flask app 'server' (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
+[2022-12-30 12:24:32,647] INFO in faces: Load model from disk: /model/model.data
+[2022-12-30 12:24:32,649] INFO in faces: Known faces loaded from disk.
+ * Serving Flask app 'server'
  * Debug mode: off
- * Running on all addresses.
-   WARNING: This is a development server. Do not use it in a production deployment.
- * Running on http://10.85.0.36:5000/ (Press CTRL+C to quit)
-[2022-01-21 11:18:46,203] INFO in server: camera @192.168.66.89 registered with token a53ca190
-[2022-01-21 11:18:46,208] INFO in server: starting streamer thread
-[2022-01-21 11:19:34,674] INFO in server: starting streamer thread
-10.85.0.1 - - [21/Jan/2022 11:19:34] "GET /register?ip=192.168.66.89&token=a53ca190 HTTP/1.1" 200 -
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.85.0.9:5000
+Press CTRL+C to quit
+10.85.0.1 - - [30/Dec/2022 12:24:33] "GET /favicon.ico HTTP/1.1" 404 -
 ```
 
 Finally, open a browser with the following URL:
 
 ```
-http://microshift-cam-reg.local/video_feed
+http://webapp-ai-for-edge.cluster.local
 ```
 
-This web will show you the feeds of all the cameras that have been registered and you will be able to see how faces are detected.
+This web will show you the feeds of the camera and you will be able to see how faces are detected.
 
+![Screenshot](screenshot.png)
 
 ## Conclusion
 

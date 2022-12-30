@@ -1,7 +1,0 @@
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest
-
-ADD index.html /src/
-ADd copy-content.sh /
-ENTRYPOINT "/copy-content.sh"
-
-

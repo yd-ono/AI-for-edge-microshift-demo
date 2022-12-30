@@ -195,3 +195,44 @@ cd /var/lib/microshift/manifests
 ```
 
 TODO Add webapp deployment manifests...
+
+# WebApp Development at the jetson
+
+```bash
+
+cd webapp/
+podman run -ti --rm \
+    --runtime /usr/bin/nvidia-container-runtime  \
+    --net host \
+    --privileged \
+    -v $(pwd):/app:z \
+    -e VIDEO_DEVICE_ID=0 \
+    -e FLASK_APP=server \
+    -e LC_ALL=C.UTF-8 \
+    -e LANG=C.UTF-8 \
+    -e MODEL_TRAINING_YAML=/app/model-training/data/metadata.yaml
+    -e MODEL_FILENAME=/app/model-training/model.data
+    quay.io/rbohne/ai-for-edge-microshift-demo:webapp \
+    bash
+
+# First time train the model
+root@jetson:/app# cd /app/model-training/
+root@jetson:/app/model-training# ./model-training.py
+Train face of Robert Bohne => /app/model-training/data/rbohne.jpg
+Known faces backed up to disk: /app/model-training/model.data
+
+# Run the Server
+root@jetson:/app# cd /app/webapp/
+root@jetson:/app/webapp# python3 -m flask run --host 0.0.0.0
+[2022-12-30 16:45:04,064] INFO in faces: Load model from disk: model.data
+[2022-12-30 16:45:04,065] CRITICAL in faces: No model face found
+ * Serving Flask app 'server'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.66.244:5000
+Press CTRL+C to quit
+
+
+```

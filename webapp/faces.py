@@ -3,12 +3,11 @@ import face_recognition
 import numpy as np
 import pickle
 
-
 known_face_encodings = []
 known_face_metadata = []
 
-RATIO = 0.25
-
+#RATIO = 0.25
+RATIO = 0.5
 
 def load_known_faces(filename,logger):
     global known_face_encodings, known_face_metadata

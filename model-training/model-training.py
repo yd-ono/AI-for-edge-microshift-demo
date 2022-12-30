@@ -9,7 +9,7 @@ import os
 known_face_encodings = []
 known_face_metadata = []
 
-with open(os.environ.get('MODEL_TRAINING_YAML', 'model-training.yaml')) as f:
+with open(os.environ.get('MODEL_TRAINING_YAML', 'metadata.yaml')) as f:
     data = yaml.load(f, Loader=SafeLoader)
 
 

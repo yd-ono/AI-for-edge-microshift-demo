@@ -1,0 +1,143 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  creationTimestamp: null
+  name: webapp-privileged
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+subjects:
+- kind: ServiceAccount
+  name: privileged
+  namespace: webapp
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: privileged
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: '*'
+    app.openshift.io/route-disabled: "false"
+    app.openshift.io/vcs-ref: ""
+    app.openshift.io/vcs-uri: https://github.com/rbo/AI-for-edge-microshift-demo
+    # image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"server:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"webapp\")].image","pause":"false"}]'
+  labels:
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/part-of: python
+    app.openshift.io/runtime: python
+  name: webapp
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: webapp
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: webapp
+        deployment: webapp
+    spec:
+      serviceAccountName: privileged
+      initContainers:
+      - image: quay.io/rbohne/ai-for-edge-microshift-demo:model
+        imagePullPolicy: IfNotPresent
+        name: model
+        volumeMounts:
+        - name: model
+          mountPath: /dst/
+      containers:
+        - image: quay.io/rbohne/ai-for-edge-microshift-demo:webapp
+          imagePullPolicy: IfNotPresent
+          name: webapp
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /dev/video0
+            name: dev-video0
+          - mountPath: /model/
+            name: model
+          env:
+          - name: MODEL_FILENAME
+            value: /model/model.data
+          securityContext:
+            privileged: true
+      volumes:
+      - name: dev-video0
+        hostPath:
+          path: /dev/video0
+      - name: "model"
+        emptyDir: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    app.openshift.io/vcs-ref: ""
+    app.openshift.io/vcs-uri: https://github.com/rbo/AI-for-edge-microshift-demo
+  labels:
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/part-of: python
+    app.openshift.io/runtime: python
+  name: webapp
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: 5000-tcp
+      port: 5000
+      protocol: TCP
+      targetPort: 5000
+  selector:
+    app: webapp
+    deployment: webapp
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: "true"
+  labels:
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/part-of: python
+    app.openshift.io/runtime: python
+  name: webapp
+spec:
+  port:
+    targetPort: 5000-tcp
+  to:
+    kind: Service
+    name: webapp
+    weight: 100
+  wildcardPolicy: None

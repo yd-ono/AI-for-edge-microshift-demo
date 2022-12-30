@@ -1,0 +1,24 @@
+FROM quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+                       python3-markupsafe nvidia-opencv python3-opencv \
+                       python3-requests \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+COPY requirements.txt /
+
+RUN pip install --no-cache-dir -r /requirements.txt
+
+ENV FLASK_APP=server \
+    LC_ALL=C.UTF-8 \
+    LANG=C.UTF-8
+
+EXPOSE 5000
+
+WORKDIR /app
+COPY *.py /app
+ADD static/ /app/static/
+ADD templates/ /app/templates/
+CMD python3 -m flask run --host 0.0.0.0

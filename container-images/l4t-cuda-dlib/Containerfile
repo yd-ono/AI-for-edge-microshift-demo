@@ -1,0 +1,48 @@
+# https://catalog.ngc.nvidia.com/orgs/nvidia/containers/l4t-base
+FROM nvcr.io/nvidia/l4t-cuda:11.4.14-runtime
+
+ARG DLIB_VERSION=19.22
+ARG DLIB_BUILD_ARGS="-j 4"
+USER root
+
+# Remove repo cuda-internal.nvidia.com
+RUN rm -v  /etc/apt/sources.list.d/cuda.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+                       libcublas-dev-11-4 libcusolver-dev-11-4 cuda-nvcc-11-4 \
+                       cuda-cudart-dev-11-4 cuda-compiler-11-4 cmake git libcudnn8-dev \
+                       libopenblas-dev liblapack-dev libcurand-dev-11-4 \
+                       python3-all-dev python3-setuptools python3-yaml \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+#####################################################################################################
+#
+# Build & Install dlib from source
+#
+#####################################################################################################
+
+WORKDIR /root
+RUN wget -q http://dlib.net/files/dlib-${DLIB_VERSION}.tar.bz2 \
+    && tar xvf dlib* \
+    && rm *.tar.bz2 \
+    && cd dlib-${DLIB_VERSION} \
+    && sed -i 's,forward_algo = forward_best_algo;,//forward_algo = forward_best_algo;,g' dlib/cuda/cudnn_dlibapi.cpp \
+    && mkdir build \
+    && cd build \
+    && cmake .. -DDLIB_USE_CUDA=1 \
+    && cmake --build . -- ${DLIB_BUILD_ARGS} \
+    && cd ../ \
+    && python3 setup.py install \
+    && cd ../ \
+    && rm -r dlib-${DLIB_VERSION}
+
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3-pil python3-pip python3-numpy \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && pip install face_recognition
+
+CMD ["echo", "This is a base image ;-)"]

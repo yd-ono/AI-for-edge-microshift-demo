@@ -1,49 +1,17 @@
 # AI at the Edge with MicroShift
-This repository contains the code developed for the talk "AI at the Edge with MicroShift" developed by Miguel Angel Ajo and Ricardo Noriega.
 
-You can find the video of our presentation [here](https://www.youtube.com/watch?v=kR9eSxM9qgg).
+This repository contains the code developed for the talk "[Image recognition on the Edge with Red Hat Device Edge (MicroShift) & Nvidia](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)" developed by Max Murakami and Robert Bohne based on the fantastic work of [Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)
 
-The end goal of this demo is to run a face detection and face recognition AI model in a cloud-native fashion using MicroShift in an edge computing scenario. In order to do this, we used the [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) family boards (tested on Jetson TX2 and Jetson Xavier NX).
+The end goal of this demo is to run a face detection and face recognition AI model in a cloud-native fashion using MicroShift in an edge computing scenario. In order to do this, we used the [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) family boards (tested on Jetson Xavier NX).
 
 This demo repository is structured into three different folders:
 
-* esp32cam: software used to program the ESP32 cameras.
-* wifi-ap: script running inside a Kubernetes pod that creates a WIFI SSID.
-* server: Flask server that receives video streams from the cameras and performs face detection and recognition.
-
-
-## ESP32 Cameras Software
-
-The code has been built using [PlatformIO](https://platformio.org/) with the Arduino framework. VSCode IDE has a very convenient plugin that allows you to choose the platform to use, compile the code and push it to the device from one place.
-
-There are tons of tutorials on how to use an ESP32 Camera with Platform IO, but one of the most relevant files to look at is the platformio.ini located in the esp32cam directory:
-
-```
-[env:esp32cam]
-#upload_speed = 460800
-upload_speed = 921600
-platform = espressif32
-board = esp32cam
-framework = arduino
-lib_deps = yoursunny/esp32cam@0.0.20210226
-monitor_port=/dev/ttyUSB0
-monitor_speed=115200
-monitor_rst=1
-monitor_dtr=0
-```
-
-Once you connect the camera to your laptop, a new `/dev/ttyUSB0` will appear, and this file determines what platform the code must be compiled for.
-
-If you want the cameras to connect to a different SSID, please modify the following file `esp32cam/src/wifi_pass.h`:
-
-```
-const char* WIFI_SSID = "camwifi";
-const char* WIFI_PASS = "thisisacamwifi";
-```
+* model-training: software used to train the model for development purpose, in the demo we train our model via ... TODO
+* webapp: Flask server that receives video streams from the cameras and performs face detection and recognition.
 
 ## Running MicroShift (jetson L4T)
 
-At this point, we have programmed our ESP32 cameras. We assume that you have installed the standard L4T operating system specific to your Jetson board, and it is ready to install some packages (as root).
+We assume that you have installed the standard L4T operating system specific to your Jetson board, and it is ready to install some packages (as root).
 
 ```
 apt install -y curl jq runc iptables conntrack nvidia-container-runtime nvidia-container-toolkit
@@ -55,10 +23,10 @@ Disable firewalld:
 systemctl disable --now firewalld
 ```
 
-Install CRI-O as our container runtime:
+Install CRI-O 1.21 as our container runtime:
 
 ```
-curl https://raw.githubusercontent.com/cri-o/cri-o/main/scripts/get | bash 
+curl https://raw.githubusercontent.com/cri-o/cri-o/v1.21.7/scripts/get | bash
 
 ```
 
@@ -90,7 +58,8 @@ Download MicroShift binary:
 
 ```
 export ARCH=arm64
-export VERSION=$(curl -L -s https://api.github.com/repos/redhat-et/microshift/releases | grep tag_name | head -n 1 | cut -d '"' -f 4)
+export VERSION=4.8.0-0.microshift-2022-02-02-194009
+
 curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-${ARCH}
 mv microshift-linux-${ARCH} /usr/bin/microshift; chmod 755 /usr/bin/microshift
 ```
@@ -121,7 +90,7 @@ systemctl enable microshift.service --now
 Download and install the oc client:
 
 ```
-curl -LO https://mirror.openshift.com/pub/openshift-v4/arm64/clients/ocp/stable/openshift-client-linux.tar.gz
+curl -LO https://mirror.openshift.com/pub/openshift-v4/arm64/clients/ocp/stable-4.9/openshift-client-linux.tar.gz
 tar xvf openshift-client-linux.tar.gz
 chmod +x oc
 mv oc /usr/local/bin
@@ -149,43 +118,15 @@ openshift-service-ca            service-ca-7764c85869-dvdtm           1/1     Ru
 
 Now, we have our cloud-native platform ready to run workloads. Think about this: we have an edge computing optimized Kubernetes distribution ready to run an AI workload, and make use of the integrated GPU from the NVIDIA Jetson board. It's awesome!
 
-## Wi-FI Access Point
+## AI Web App
 
-We don't want to depend on any available wireless network that we don't control and might not be secured. Furthermore, in order to allow users to test this demo, it has to be self-contained. This is why we have created a pod that creates a Wi-Fi Access Point with the credentials mentioned in the above section.
-
-```
-SSID: camwifi
-Password: thisisacamwifi
-```
-
-If you want to expose a different SSID and use a different password, please change the file `wifi-ap/hostapd.conf`.
-
-Now, let's deploy this pod on MicroShift.
-
-```
-oc apply -f wifi-ap/cam-ap.yaml
-```
-
-After a few seconds, we should be able to see it running:
-
-```
-oc get pods
-
-NAME                         READY   STATUS    RESTARTS   AGE
-cameras-ap-b6b6c9c96-krm45   1/1     Running   0          3s
-```
-
-Looking at the logs of the pod, you will see how the process inside will provide IP addresses to the cameras or any device connected to the wireless network.
-
-
-## AI models
-
-The final step is to deploy the AI models that will perform face detection and face recognition. This pod is basically a Flask server that will get the streams of the cameras once they are connected, and start working on a discrete number of frames.
+The final step is to deploy the AI Web App that will perform face detection and face recognition. This pod is basically a Flask server that will get the streams of the cameras once they are connected, and start working on a discrete number of frames.
 
 Let's deploy the AI models on MicroShift:
 
 ```
-oc apply -f server/cam-server.yaml
+oc new-project ai-for-edge
+oc apply -f webapp.deploy.yaml
 ```
 
 After few seconds:
@@ -194,15 +135,15 @@ After few seconds:
 oc get pods
 
 NAME                         READY   STATUS    RESTARTS   AGE
-cameras-ap-b6b6c9c96-krm45   1/1     Running   0          4m37s
-camserver-cc996fd86-pkm45    1/1     Running   0          42s
+webapp-67dd6b46fc-bqgbs   1/1     Running   2          2m33s
 ```
 
-We also need to create a service and expose a route for this pod:
+Check the hostname of the route:
 
 ```
-oc expose deployment camserver
-oc expose service camserver --hostname microshift-cam-reg.local
+$ oc get routes
+NAME     HOST/PORT                          PATH   SERVICES   PORT       TERMINATION   WILDCARD
+webapp   webapp-ai-for-edge.cluster.local          webapp     5000-tcp                 None
 ```
 
 MicroShift has mDNS built-in capabilities, and this route will be automatically announced, so the cameras can register to this service, and start streaming video.
@@ -210,72 +151,35 @@ MicroShift has mDNS built-in capabilities, and this route will be automatically 
 Looking at the camserver logs, we can see this registration process:
 
 ```
-oc logs camserver-cc996fd86-pkm45
+oc logs -f deployment/webapp -c webapp
 
- * Serving Flask app 'server' (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
+[2022-12-30 12:24:32,647] INFO in faces: Load model from disk: /model/model.data
+[2022-12-30 12:24:32,649] INFO in faces: Known faces loaded from disk.
+ * Serving Flask app 'server'
  * Debug mode: off
- * Running on all addresses.
-   WARNING: This is a development server. Do not use it in a production deployment.
- * Running on http://10.85.0.36:5000/ (Press CTRL+C to quit)
-[2022-01-21 11:18:46,203] INFO in server: camera @192.168.66.89 registered with token a53ca190
-[2022-01-21 11:18:46,208] INFO in server: starting streamer thread
-[2022-01-21 11:19:34,674] INFO in server: starting streamer thread
-10.85.0.1 - - [21/Jan/2022 11:19:34] "GET /register?ip=192.168.66.89&token=a53ca190 HTTP/1.1" 200 -
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://10.85.0.9:5000
+Press CTRL+C to quit
+10.85.0.1 - - [30/Dec/2022 12:24:33] "GET /favicon.ico HTTP/1.1" 404 -
 ```
 
 Finally, open a browser with the following URL:
 
 ```
-http://microshift-cam-reg.local/video_feed
+http://webapp-ai-for-edge.cluster.local
 ```
 
-This web will show you the feeds of all the cameras that have been registered and you will be able to see how faces are detected.
+This web will show you the feeds of the camera and you will be able to see how faces are detected.
 
+![Screenshot](screenshot.png)
 
 ## Conclusion
 
-This demo is just a simple use case of what an edge computing scenario would look like. Running AI/ML models on top of an embedded system like the NVIDIA Jetson family, and leveraging cloud-native capabilities with MicroShift. 
+This demo is just a simple use case of what an edge computing scenario would look like. Running AI/ML models on top of an embedded system like the NVIDIA Jetson family, and leveraging cloud-native capabilities with MicroShift.
 
 We hope you enjoy it!
-
-
-# Installing on Fedora 35 / aarch64 rpi4
-```bash
-sudo dnf module enable -y cri-o:1.21
-sudo dnf copr enable -y @redhat-et/microshift
-sudo dnf install -y cri-o cri-tools nss-mdns avahi microshift
-
-hostnamectl set-hostname microshift-rpi64.local
-systemctl enable --now avahi-daemon.service
-
-
-firewall-cmd --zone=trusted --add-source=10.42.0.0/16 --permanent
-firewall-cmd --zone=public --add-port=80/tcp --permanent
-firewall-cmd --zone=public --add-port=443/tcp --permanent
-# enable mdns
-firewall-cmd --zone=public --add-port=5353/udp --permanent
-# this one is used by the dhcp server on the acccess point
-firewall-cmd --zone=public --add-service=dhcp --permanent
-# this rule allows connections from the cameras into this host
-firewall-cmd --zone=trusted --add-source=192.168.66.0/24 --permanent
-firewall-cmd --reload
-
-cat >/etc/NetworkManager/conf.d/99-unmanaged-devices.conf <<EOF
-[keyfile]
-unmanaged-devices=interface-name:wlan0
-EOF
-
-curl -L -o /etc/yum.repos.d/microshift-containers.repo \
-           https://copr.fedorainfracloud.org/coprs/g/redhat-et/microshift-containers/repo/fedora-35/group_redhat-et-microshift-containers-fedora-35.repo
-dnf install -y microshift-containers
-
-systemctl enable --now avahi-daemon.service  
-systemctl enable --now crio  
-systemctl enable --now microshift   
-```
 
 # Installing manifests
 
@@ -290,118 +194,4 @@ mkdir -p /var/lib/microshift/manifests
 cd /var/lib/microshift/manifests
 ```
 
-```bash
-cat > kustomization.yaml <<EOF
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: default
-resources:
-  - access-point.yaml
-  - cam-server.yaml
-  - service.yaml
-  - mdns-route.yaml
-images:
-  - name: APP_IMAGE
-    newName: docker.io/mangelajo/cam-server:latest-nogpu
-EOF
-```
-
-```bash
-cat > access-point.yaml <<EOF
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cameras-ap
-  labels:
-    infra: ap
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      infra: ap
-  template:
-    metadata:
-      labels:
-        infra: ap
-    spec:
-      hostNetwork: true
-      containers:
-      - name: camwifi-ap
-        image: quay.io/mangelajo/microshift-ap-cams:latest-rpi4
-        imagePullPolicy: Always
-        securityContext:
-          privileged: true # otherwise hostapd can't change channels for some reason
-          capabilities:
-            add:
-              - NET_ADMIN
-              - NET_RAW
-EOF
-```
-
-```bash
-cat > cam-server.yaml <<EOF
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: camserver
-  labels:
-    app: camserver
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: camserver
-  template:
-    metadata:
-      labels:
-        app: camserver
-    spec:
-      containers:
-      - name: camserver
-        image: APP_IMAGE
-        imagePullPolicy: Always
-        ports:
-         - containerPort: 5000
-EOF
-```
-
-```bash
-cat > mdns-route.yaml <<EOF
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  labels:
-    app: camserver
-  name: camserver
-spec:
-  host: microshift-cam-reg.local
-  port:
-    targetPort: 5000
-  to:
-    kind: Service
-    name: camserver
-    weight: 100
-  wildcardPolicy: None
-EOF
-```
-
-
-```bash
-cat > service.yaml <<EOF
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: camserver
-  name: camserver
-spec:
-  ports:
-  - port: 5000
-    protocol: TCP
-    targetPort: 5000
-  selector:
-    app: camserver
-  sessionAffinity: None
-  type: ClusterIP
-EOF
-```
+TODO Add webapp deployment manifests...

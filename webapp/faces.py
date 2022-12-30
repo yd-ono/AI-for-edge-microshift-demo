@@ -39,18 +39,23 @@ def find_and_mark_faces(frame, logger):
         logger.info("face_locations = %s, names = %s", face_locations, names)
 
         for (top, right, bottom, left), name in zip(face_locations, names):
-            add_name_box(frame, left, top, bottom, right, name)
+            # Green
+            color = (0, 153, 51)
+            if name == "Unknown":
+                # Red
+                color = (0, 0, 255)
+            add_name_box(frame, left, top, bottom, right, name, color)
 
     return frame
 
 
-def add_name_box(frame, left, top, bottom, right, name):
+def add_name_box(frame, left, top, bottom, right, name, color):
     inv_ratio = 1.0 / RATIO
     top = int(top * inv_ratio)
     right = int(right * inv_ratio)
     bottom = int(bottom * inv_ratio)
     left = int(left * inv_ratio)
-    cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-    cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+    cv2.rectangle(frame, (left, top), (right, bottom), color, 2)
+    cv2.rectangle(frame, (left, bottom - 35), (right, bottom), color, cv2.FILLED)
     font = cv2.FONT_HERSHEY_DUPLEX
     cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)

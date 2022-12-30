@@ -1,33 +1,28 @@
 import cv2
 import face_recognition
 import numpy as np
+import pickle
 
-# TODO, traverse directories and generate automatically
-ricky1_face_encoding = face_recognition.face_encodings(
-    face_recognition.load_image_file("faces/Ricardo Noriega/ricky1.jpg"))[0]
 
-ajo1_face_encoding = face_recognition.face_encodings(
-    face_recognition.load_image_file("faces/Miguel Angel Ajo/ajo1.jpg"))[0]
-
-rbohne_face_encoding = face_recognition.face_encodings(
-    face_recognition.load_image_file("faces/Robert Bohne/rbohne.jpg"))[0]
-
-known_face_encodings = [
-        ricky1_face_encoding,
-        ajo1_face_encoding,
-        rbohne_face_encoding,
-        ]
-
-known_face_names = [
-        "Ricardo Noriega",
-        "Miguel Angel Ajo",
-        "Robert Bohne"
-    ]
+known_face_encodings = []
+known_face_metadata = []
 
 RATIO = 0.25
 
 
-def find_and_mark_faces(frame, logger, cam_ip):
+def load_known_faces(filename,logger):
+    global known_face_encodings, known_face_metadata
+
+    try:
+        with open(filename, "rb") as face_data_file:
+            known_face_encodings, known_face_metadata = pickle.load(face_data_file)
+            logger.info("Known faces loaded from disk.")
+    except FileNotFoundError as e:
+        logger.critical("No previous face data found - starting with a blank known face list.")
+        pass
+
+
+def find_and_mark_faces(frame, logger):
     small_frame = cv2.resize(frame, (0, 0), fx=RATIO, fy=RATIO)
     face_locations = face_recognition.face_locations(small_frame, 1, "hog")
     names = []
@@ -38,10 +33,10 @@ def find_and_mark_faces(frame, logger, cam_ip):
         face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
         best_match_index = np.argmin(face_distances)
         if matches[best_match_index]:
-            name = known_face_names[best_match_index]
+            name = known_face_metadata[best_match_index]['name']
         names.append(name)
 
-        logger.info("[cam %s] face_locations = %s, names = %s", cam_ip, face_locations, names)
+        logger.info("face_locations = %s, names = %s", face_locations, names)
 
         for (top, right, bottom, left), name in zip(face_locations, names):
             add_name_box(frame, left, top, bottom, right, name)

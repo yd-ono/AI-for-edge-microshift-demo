@@ -27,7 +27,7 @@ known_face_names = [
 RATIO = 0.25
 
 
-def find_and_mark_faces(frame, logger, cam_ip):
+def find_and_mark_faces(frame, logger):
     small_frame = cv2.resize(frame, (0, 0), fx=RATIO, fy=RATIO)
     face_locations = face_recognition.face_locations(small_frame, 1, "hog")
     names = []
@@ -41,7 +41,7 @@ def find_and_mark_faces(frame, logger, cam_ip):
             name = known_face_names[best_match_index]
         names.append(name)
 
-        logger.info("[cam %s] face_locations = %s, names = %s", cam_ip, face_locations, names)
+        logger.info("face_locations = %s, names = %s", face_locations, names)
 
         for (top, right, bottom, left), name in zip(face_locations, names):
             add_name_box(frame, left, top, bottom, right, name)

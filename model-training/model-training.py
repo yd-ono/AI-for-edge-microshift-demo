@@ -19,9 +19,7 @@ with open(metadata_file) as f:
 for info in data['faces']:
     image = "%s/%s" % ( iamge_basedir, info['image'])
     print("Train face of %s => %s" % (info['name'],image))
-    known_face_metadata.append({
-        "name": info['name'],
-    })
+    known_face_metadata.append( info['name'] )
 
 
     face_encoding = face_recognition.face_encodings(

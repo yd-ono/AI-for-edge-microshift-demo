@@ -36,7 +36,7 @@ def find_and_mark_faces(frame, logger):
         face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
         best_match_index = np.argmin(face_distances)
         if matches[best_match_index]:
-            name = known_face_metadata[best_match_index]['name']
+            name = known_face_metadata[best_match_index]
         names.append(name)
 
         logger.info("face_locations = %s, names = %s", face_locations, names)
@@ -53,7 +53,7 @@ def find_and_mark_faces(frame, logger):
 
 
 def add_name_box(frame, left, top, bottom, right, name, color):
-    inv_ratio = 1.0 / RATIO
+    inv_ratio = 1.0 / ratio
     top = int(top * inv_ratio)
     right = int(right * inv_ratio)
     bottom = int(bottom * inv_ratio)

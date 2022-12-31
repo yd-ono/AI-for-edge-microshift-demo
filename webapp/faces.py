@@ -2,12 +2,15 @@ import cv2
 import face_recognition
 import numpy as np
 import pickle
+import os
 
 known_face_encodings = []
 known_face_metadata = []
 
-#RATIO = 0.25
-RATIO = 0.5
+ratio = float(os.environ.get('FACE_RATIO', 0.25))
+face_loc_model = os.environ.get('FACE_LOC_MODEL', 'hog')
+face_loc_ntu = int(os.environ.get('FACE_LOC_NTU', 1))
+
 
 def load_known_faces(filename,logger):
     global known_face_encodings, known_face_metadata
@@ -21,9 +24,10 @@ def load_known_faces(filename,logger):
         pass
 
 
+
 def find_and_mark_faces(frame, logger):
-    small_frame = cv2.resize(frame, (0, 0), fx=RATIO, fy=RATIO)
-    face_locations = face_recognition.face_locations(small_frame, 1, "hog")
+    small_frame = cv2.resize(frame, (0, 0), fx=ratio, fy=ratio)
+    face_locations = face_recognition.face_locations(small_frame, face_loc_ntu,face_loc_model )
     names = []
     face_encodings = face_recognition.face_encodings(small_frame, face_locations)
     for face_encoding in face_encodings:

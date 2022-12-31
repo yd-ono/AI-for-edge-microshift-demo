@@ -200,7 +200,6 @@ TODO Add webapp deployment manifests...
 
 ```bash
 
-cd webapp/
 podman run -ti --rm \
     --runtime /usr/bin/nvidia-container-runtime  \
     --net host \
@@ -210,8 +209,8 @@ podman run -ti --rm \
     -e FLASK_APP=server \
     -e LC_ALL=C.UTF-8 \
     -e LANG=C.UTF-8 \
-    -e MODEL_TRAINING_YAML=/app/model-training/data/metadata.yaml
-    -e MODEL_FILENAME=/app/model-training/model.data
+    -e MODEL_TRAINING_YAML=/app/model-training/data/metadata.yaml \
+    -e MODEL_FILENAME=/app/model-training/model.data \
     quay.io/rbohne/ai-for-edge-microshift-demo:webapp \
     bash
 

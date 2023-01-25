@@ -1,0 +1,196 @@
+{
+  "doc_type": "pipeline",
+  "version": "3.0",
+  "json_schema": "http://api.dataplatform.ibm.com/schemas/common-pipeline/pipeline-flow/pipeline-flow-v3-schema.json",
+  "id": "elyra-auto-generated-pipeline",
+  "primary_pipeline": "primary",
+  "pipelines": [
+    {
+      "id": "primary",
+      "nodes": [
+        {
+          "id": "37ae8c45-dbf4-4e28-8e98-1152678771bd",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [
+                "face-images/*.jpg"
+              ],
+              "include_subdirectories": false,
+              "outputs": [
+                "model.data"
+              ],
+              "env_vars": [],
+              "kubernetes_pod_annotations": [],
+              "kubernetes_pod_labels": [],
+              "kubernetes_secrets": [],
+              "kubernetes_shared_mem_size": {},
+              "kubernetes_tolerations": [],
+              "mounted_volumes": [],
+              "filename": "model_training.py",
+              "runtime_image": "quay.io/mmurakam/face-recognition-kfp-runtime:face-recognition-kfp-runtime-v0.1.0"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "model_training.py",
+              "image": "/notebook/rhte-demo/model-development/static/elyra/python.svg",
+              "x_pos": 98,
+              "y_pos": 245,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              }
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "5b6a9c1b-4dbc-4f8a-ada2-cc20a9fa5e4e",
+          "type": "execution_node",
+          "op": "execute-python-node",
+          "app_data": {
+            "component_parameters": {
+              "dependencies": [],
+              "include_subdirectories": false,
+              "outputs": [],
+              "env_vars": [
+                {
+                  "env_var": "AWS_ACCESS_KEY_ID"
+                },
+                {
+                  "env_var": "AWS_SECRET_ACCESS_KEY"
+                },
+                {
+                  "env_var": "AWS_S3_ENDPOINT"
+                },
+                {
+                  "env_var": "AWS_S3_BUCKET"
+                }
+              ],
+              "kubernetes_pod_annotations": [],
+              "kubernetes_pod_labels": [],
+              "kubernetes_secrets": [
+                {
+                  "env_var": "AWS_ACCESS_KEY_ID",
+                  "name": "aws-connection-models",
+                  "key": "AWS_ACCESS_KEY_ID"
+                },
+                {
+                  "env_var": "AWS_SECRET_ACCESS_KEY",
+                  "name": "aws-connection-models",
+                  "key": "AWS_SECRET_ACCESS_KEY"
+                },
+                {
+                  "env_var": "AWS_S3_ENDPOINT",
+                  "name": "aws-connection-models",
+                  "key": "AWS_S3_ENDPOINT"
+                },
+                {
+                  "env_var": "AWS_S3_BUCKET",
+                  "name": "aws-connection-models",
+                  "key": "AWS_S3_BUCKET"
+                }
+              ],
+              "kubernetes_shared_mem_size": {},
+              "kubernetes_tolerations": [],
+              "mounted_volumes": [],
+              "filename": "model_upload.py",
+              "runtime_image": "quay.io/mmurakam/face-recognition-kfp-runtime:face-recognition-kfp-runtime-v0.1.0"
+            },
+            "label": "",
+            "ui_data": {
+              "label": "model_upload.py",
+              "image": "/notebook/rhte-demo/model-development/static/elyra/python.svg",
+              "x_pos": 372.0000305175781,
+              "y_pos": 246,
+              "description": "Run Python script"
+            }
+          },
+          "inputs": [
+            {
+              "id": "inPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Input Port"
+                }
+              },
+              "links": [
+                {
+                  "id": "705b994d-d955-4d55-a643-bbd70af0b658",
+                  "node_id_ref": "37ae8c45-dbf4-4e28-8e98-1152678771bd",
+                  "port_id_ref": "outPort"
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "outPort",
+              "app_data": {
+                "ui_data": {
+                  "cardinality": {
+                    "min": 0,
+                    "max": -1
+                  },
+                  "label": "Output Port"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "app_data": {
+        "ui_data": {
+          "comments": []
+        },
+        "version": 8,
+        "runtime_type": "KUBEFLOW_PIPELINES",
+        "properties": {
+          "name": "model-training",
+          "runtime": "Kubeflow Pipelines",
+          "pipeline_parameters": [],
+          "pipeline_defaults": {
+            "kubernetes_pod_annotations": [],
+            "mounted_volumes": [],
+            "kubernetes_pod_labels": [],
+            "kubernetes_tolerations": [],
+            "kubernetes_shared_mem_size": {},
+            "kubernetes_secrets": [],
+            "env_vars": []
+          }
+        }
+      },
+      "runtime_ref": ""
+    }
+  ],
+  "schemas": []
+}

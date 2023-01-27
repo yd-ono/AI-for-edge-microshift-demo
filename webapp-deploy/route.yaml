@@ -1,0 +1,21 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    openshift.io/host.generated: "true"
+  labels:
+    app: webapp
+    app.kubernetes.io/component: webapp
+    app.kubernetes.io/instance: webapp
+    app.kubernetes.io/name: webapp
+    app.kubernetes.io/part-of: python
+    app.openshift.io/runtime: python
+  name: webapp
+spec:
+  port:
+    targetPort: 5000-tcp
+  to:
+    kind: Service
+    name: webapp
+    weight: 100
+  wildcardPolicy: None

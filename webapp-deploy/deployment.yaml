@@ -1,22 +1,3 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  creationTimestamp: null
-  name: webapp-privileged
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: system:openshift:scc:privileged
-subjects:
-- kind: ServiceAccount
-  name: privileged
-  namespace: webapp
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: privileged
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -89,55 +70,3 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
----
-apiVersion: v1
-kind: Service
-metadata:
-  annotations:
-    app.openshift.io/vcs-ref: ""
-    app.openshift.io/vcs-uri: https://github.com/rbo/AI-for-edge-microshift-demo
-  labels:
-    app: webapp
-    app.kubernetes.io/component: webapp
-    app.kubernetes.io/instance: webapp
-    app.kubernetes.io/name: webapp
-    app.kubernetes.io/part-of: python
-    app.openshift.io/runtime: python
-  name: webapp
-spec:
-  internalTrafficPolicy: Cluster
-  ipFamilies:
-    - IPv4
-  ipFamilyPolicy: SingleStack
-  ports:
-    - name: 5000-tcp
-      port: 5000
-      protocol: TCP
-      targetPort: 5000
-  selector:
-    app: webapp
-    deployment: webapp
-  sessionAffinity: None
-  type: ClusterIP
----
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  annotations:
-    openshift.io/host.generated: "true"
-  labels:
-    app: webapp
-    app.kubernetes.io/component: webapp
-    app.kubernetes.io/instance: webapp
-    app.kubernetes.io/name: webapp
-    app.kubernetes.io/part-of: python
-    app.openshift.io/runtime: python
-  name: webapp
-spec:
-  port:
-    targetPort: 5000-tcp
-  to:
-    kind: Service
-    name: webapp
-    weight: 100
-  wildcardPolicy: None

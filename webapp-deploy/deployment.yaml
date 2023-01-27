@@ -57,6 +57,12 @@ spec:
           env:
           - name: MODEL_FILENAME
             value: /model/model.data
+          - name: FACE_LOC_MODEL
+            value: "cnn"
+          - name: FACE_LOC_NTU
+            value: "1"
+          - name: "FACE_RATIO"
+            value: "0.5"
           securityContext:
             privileged: true
       volumes:

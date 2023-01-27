@@ -33,14 +33,14 @@ spec:
     spec:
       serviceAccountName: privileged
       initContainers:
-      - image: quay.io/rbohne/ai-for-edge-microshift-demo:model
+      - image: default-registry.cluster.local/ai-for-edge/model:2301251401
         imagePullPolicy: IfNotPresent
         name: model
         volumeMounts:
         - name: model
           mountPath: /dst/
       containers:
-        - image: quay.io/rbohne/ai-for-edge-microshift-demo:webapp
+        - image: default-registry.cluster.local/ai-for-edge/webapp:latest
           imagePullPolicy: IfNotPresent
           name: webapp
           ports:

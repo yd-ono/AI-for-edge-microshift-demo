@@ -6,10 +6,51 @@ The end goal of this demo is to run a face detection and face recognition AI mod
 
 This demo repository is structured into three different folders:
 
-* model-training: software used to train the model for development purpose, in the demo we train our model via ... TODO
+* model-training-pipeline: A Jupyter notebook containing the necessary steps for training face recognition models based on facial images.
+* init-container: A Tekton pipeline for packaging the trained model into a container image that can be rolled out on the edge platform.
 * webapp: Flask server that receives video streams from the cameras and performs face detection and recognition.
 
-## Running MicroShift (jetson L4T)
+## Set Up
+
+The demo is set up on two OpenShift instances representing the environments of an end-to-end ML workflow:
+- an OpenShift cluster for training the models and building the containers (data science environment in central data center of public cloud)
+- a MicroShift instance deployed on a device in an edge location, which is connected to a camera. It hosts the AI web app, which processes the incoming video stream and performs face recognition based on the encapsulated face recognition models.
+
+### Setting up model training on the central OCP cluster
+
+#### Model development
+
+We assume that you have set up an S3 storage instance or have write permissions on an existing S3 storage instance.
+
+1. Install `Red Hat OpenShift Data Science` operator through the Operator Hub.
+2. Install `Red Hat OpenShift Pipelines` operator (1.7 or 1.8) through the Operator Hub.
+3. Deploy `model-training-pipeline/face-recognition-notebook.yaml` into namespace `redhat-ods-applications`.
+4. Open RHODS dashboard (`Red Hat OpenShift Data Science` in add-on menu in top right toolbar).
+5. In the `Data Science Projects` tab, select `Create data science project`. Enter the name `demo-project` and select `Create`.
+6. Select `Create workbench`:
+    - Name: `model training`
+    - Notebook image: `Face recognition Elyra`
+    - Select `Create workbench`
+7. In your S3 storage, create a bucket with name `models`.
+8. In the RHODS dashboard, select `Add data connection`:
+    - Name: `models`
+    - AWS_ACCESS_KEY: your S3 access key
+    - AWS_SECRET_ACCESS_KEY: your S3 secret key
+    - AWS_S3_ENDPOINT: your S3 endpoint URL
+    - AWS_S3_BUCKET: `models`
+    - Connected workbench: `model training`
+    - Select `Add data connection`
+9. Check the status of your `model training` workbench. Once it's `Running`, select `Open`. Select `Allow selected permissions`.
+10. In the workbench open the Git client from the left toolbar. Select `Clone a Repository`. Enter the URI of this repository and select `Clone`.
+11. In the file browser, navigate to `AI-for-edge-microshift-demo` -> `model-training-pipeline`.
+
+The model development part of the demo is now prepared.
+
+#### Model container build pipeline
+
+TODO
+
+### Running MicroShift (jetson L4T)
 
 We assume that you have installed the standard L4T operating system specific to your Jetson board, and it is ready to install some packages (as root).
 
@@ -118,7 +159,7 @@ openshift-service-ca            service-ca-7764c85869-dvdtm           1/1     Ru
 
 Now, we have our cloud-native platform ready to run workloads. Think about this: we have an edge computing optimized Kubernetes distribution ready to run an AI workload, and make use of the integrated GPU from the NVIDIA Jetson board. It's awesome!
 
-## AI Web App
+### AI Web App
 
 The final step is to deploy the AI Web App that will perform face detection and face recognition. This pod is basically a Flask server that will get the streams of the cameras once they are connected, and start working on a discrete number of frames.
 

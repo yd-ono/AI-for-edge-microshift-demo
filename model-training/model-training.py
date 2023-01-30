@@ -9,18 +9,21 @@ import os
 known_face_encodings = []
 known_face_metadata = []
 
-with open(os.environ.get('MODEL_TRAINING_YAML', 'metadata.yaml')) as f:
+metadata_file = os.environ.get('MODEL_TRAINING_YAML', 'metadata.yaml')
+iamge_basedir = os.path.dirname(metadata_file)
+
+with open(metadata_file) as f:
     data = yaml.load(f, Loader=SafeLoader)
 
 
 for info in data['faces']:
-    print("Train face of %s" % info['name'])
-    known_face_metadata.append({
-        "name": info['name'],
-    })
+    image = "%s/%s" % ( iamge_basedir, info['image'])
+    print("Train face of %s => %s" % (info['name'],image))
+    known_face_metadata.append( info['name'] )
+
 
     face_encoding = face_recognition.face_encodings(
-        face_recognition.load_image_file(info['image']))[0]
+        face_recognition.load_image_file(image))[0]
 
     known_face_encodings.append(face_encoding)
 

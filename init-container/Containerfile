@@ -1,5 +1,7 @@
-FROM registry.access.redhat.com/ubi9/ubi-init:latest
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
-ADD ./model.data .
+ADD ./model.data /
 
-CMD cp ./model.data $TARGET_FILE_LOCATION
+ENV TARGET_FILE_LOCATION=/dst/
+
+CMD cp -rvp /model.data $TARGET_FILE_LOCATION

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: s3-cli
+  labels:
+    app: s3-cli
+spec:
+  containers:
+    - name: s3
+      image: quay.io/rbo/ubi-awscli:latest
+      command:
+       - /bin/sh
+       - -c
+       - |
+          set -x
+
+          aws s3 ls --no-verify-ssl  --endpoint-url https://s3-openshift-storage.apps.cluster.coe.muc.redhat.com
+
+          sleep infinity
+
+      env:
+      - name:  AWS_SHARED_CREDENTIALS_FILE
+        value: "/aws/credentials"
+      volumeMounts:
+      - mountPath: /aws
+        name: aws
+  volumes:
+  - name: aws
+    secret:
+      secretName: aws-credentials

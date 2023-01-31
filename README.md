@@ -40,8 +40,6 @@ We assume that you have set up an S3 storage instance or have write permissions 
     - Select `Add data connection`
 9. Check the status of your `model training` workbench. Once it's `Running`, select `Open`. Select `Allow selected permissions`.
 10. In the workbench open the Git client from the left toolbar. Select `Clone a Repository`. Enter the URI of this repository and select `Clone`.
-11. In the file browser, navigate to `AI-for-edge-microshift-demo` -> `model-training-pipeline`.
-12. In `manifests/model-container-pipeline.yaml`, update the `aws-credentials` section using your S3 credentials. Deploy the manifest into namespace `demo-project`.
 
 ### Running MicroShift (jetson L4T)
 
@@ -269,3 +267,16 @@ Press CTRL+C to quit
 
 
 ```
+
+## Run the demo
+
+### Run model (re)training
+
+1. In the RHODS dashboard, open the `model training` workbench in your Data Science Project.
+2. Open the `face-images` folder. The training workflow will create an embedding for each face image with file ending `.jpg` within this folder. It will use the file name (excluding the file ending) as the name of the corresponding person. Upload new face images to this folder to train new face recognition models and thereby enable the edge application to recognize new faces.
+3. Open the `training-workflow.ipynb` notebook within the `model-training-pipeline` folder of the cloned repository.
+4. Open the `Object Storage Browser` JupyterLab extension in the left toolbar. Enter your S3 endpoint and credentials and log in. You should see a list of S3 buckets including the `models` bucket. Open the `models` bucket.
+5. Run the notebook cells from top to bottom.
+6. After executing the `Upload model to S3` cell you should see a new folder in the object storage browser. Its name indicates the timestamp (version) of the uploaded model. Within that folder, you should see the file `model.data`, which is the packaged model binary.
+
+The ML development and training stage is concluded. In the next step we'll package the trained model into a container that can be shipped to the target edge platform.

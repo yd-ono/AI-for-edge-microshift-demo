@@ -1,7 +1,60 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: model-container-build
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeMode: Filesystem
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: aws-credentials
+stringData:
+  credentials: |-
+    [default]
+    aws_access_key_id     = ACCESS_KEY
+    aws_secret_access_key = SECRET_KEY
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: aws-cli
+spec:
+  description: This task performs operations on Amazon Web Services resources using aws.
+  params:
+    - default: aws $@
+      description: The AWS script to run
+      name: SCRIPT
+      type: string
+    - default:
+        - help
+      description: AWS cli arguments to be passed
+      name: ARGS
+      type: array
+  steps:
+    - args:
+        - $(params.ARGS)
+      image: >-
+        docker.io/amazon/aws-cli:2.0.52@sha256:1506cec98a7101c935176d440a14302ea528b8f92fcaf4a6f1ea2d7ecef7edc4
+      name: awscli
+      resources: {}
+      script: $(params.SCRIPT)
+  workspaces:
+    - name: source
+      optional: true
+    - mountPath: /tekton/home/.aws
+      name: secrets
+      optional: true
+---
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: build-init-container
+  name: build-model-container
 spec:
   params:
     - default: 's3://models/TIMESTAMP/model.data'
@@ -39,7 +92,7 @@ spec:
         name: git-clone
       workspaces:
         - name: output
-          workspace: init-container-build-space
+          workspace: model-container-build-space
     - name: download-model
       params:
         - name: SCRIPT
@@ -51,7 +104,7 @@ spec:
         - name: ARGS
           value:
             - $(params.S3_OBJECT_URL)
-            - /workspace/source/init-container/model.data
+            - /workspace/source/model-container/model.data
             - $(params.S3_ENDPOINT_URL)
       runAfter:
         - git-clone
@@ -60,7 +113,7 @@ spec:
         name: aws-cli
       workspaces:
         - name: source
-          workspace: init-container-build-space
+          workspace: model-container-build-space
         - name: secrets
           workspace: s3-parameters
     - name: buildah
@@ -73,9 +126,9 @@ spec:
         - name: STORAGE_DRIVER
           value: vfs
         - name: DOCKERFILE
-          value: /workspace/source/init-container/Containerfile
+          value: /workspace/source/container-images/model-container/Containerfile
         - name: CONTEXT
-          value: /workspace/source/init-container
+          value: /workspace/source/container-images/model-container
         - name: TLSVERIFY
           value: 'true'
         - name: FORMAT
@@ -89,7 +142,12 @@ spec:
         name: buildah
       workspaces:
         - name: source
-          workspace: init-container-build-space
+          workspace: model-container-build-space
   workspaces:
-    - name: init-container-build-space
+    - name: model-container-build-space
     - name: s3-parameters
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: model-container

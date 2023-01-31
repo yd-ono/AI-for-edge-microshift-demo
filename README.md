@@ -16,15 +16,13 @@ The demo is set up on two OpenShift instances representing the environments of a
 - an OpenShift cluster for training the models and building the containers (data science environment in central data center of public cloud)
 - a MicroShift instance deployed on a device in an edge location, which is connected to a camera. It hosts the AI web app, which processes the incoming video stream and performs face recognition based on the encapsulated face recognition models.
 
-### Setting up model training on the central OCP cluster
-
-#### Model development
+### Setting up model training and packaging on the central OCP cluster
 
 We assume that you have set up an S3 storage instance or have write permissions on an existing S3 storage instance.
 
 1. Install `Red Hat OpenShift Data Science` operator through the Operator Hub.
 2. Install `Red Hat OpenShift Pipelines` operator (1.7 or 1.8) through the Operator Hub.
-3. Deploy `model-training-pipeline/face-recognition-notebook.yaml` into namespace `redhat-ods-applications`.
+3. Deploy `manifests/face-recognition-notebook.yaml` into namespace `redhat-ods-applications`.
 4. Open RHODS dashboard (`Red Hat OpenShift Data Science` in add-on menu in top right toolbar).
 5. In the `Data Science Projects` tab, select `Create data science project`. Enter the name `demo-project` and select `Create`.
 6. Select `Create workbench`:
@@ -43,12 +41,7 @@ We assume that you have set up an S3 storage instance or have write permissions 
 9. Check the status of your `model training` workbench. Once it's `Running`, select `Open`. Select `Allow selected permissions`.
 10. In the workbench open the Git client from the left toolbar. Select `Clone a Repository`. Enter the URI of this repository and select `Clone`.
 11. In the file browser, navigate to `AI-for-edge-microshift-demo` -> `model-training-pipeline`.
-
-The model development part of the demo is now prepared.
-
-#### Model container build pipeline
-
-TODO
+12. In `manifests/model-container-pipeline.yaml`, update the `aws-credentials` section using your S3 credentials. Deploy the manifest into namespace `demo-project`.
 
 ### Running MicroShift (jetson L4T)
 

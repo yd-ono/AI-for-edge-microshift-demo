@@ -63,7 +63,7 @@ spec:
     - default: 'http://minio-service.minio.svc.cluster.local:9000'
       name: S3_ENDPOINT_URL
       type: string
-    - default: 'https://github.com/mamurak/AI-for-edge-microshift-demo.git'
+    - default: 'https://github.com/rbo/AI-for-edge-microshift-demo.git'
       name: git_repository_url
       type: string
     - default: 'REGISTRY/REPOSITORY/IMAGE:TAG'
@@ -104,7 +104,7 @@ spec:
         - name: ARGS
           value:
             - $(params.S3_OBJECT_URL)
-            - /workspace/source/model-container/model.data
+            - /workspace/source/container-images/model-container/model.data
             - $(params.S3_ENDPOINT_URL)
       runAfter:
         - git-clone

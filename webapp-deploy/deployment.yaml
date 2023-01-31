@@ -58,7 +58,7 @@ spec:
           - name: MODEL_FILENAME
             value: /model/model.data
           - name: FACE_LOC_MODEL
-            value: "cnn"
+            value: "hog"
           - name: FACE_LOC_NTU
             value: "1"
           - name: "FACE_RATIO"

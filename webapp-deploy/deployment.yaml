@@ -60,9 +60,9 @@ spec:
           - name: FACE_LOC_MODEL
             value: "cnn"
           - name: FACE_LOC_NTU
-            value: "1"
+            value: "2"
           - name: "FACE_RATIO"
-            value: "0.5"
+            value: "1"
           securityContext:
             privileged: true
       volumes:

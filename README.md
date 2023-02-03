@@ -4,11 +4,77 @@ This repository contains the code developed for the talk "[Image recognition on 
 
 The end goal of this demo is to run a face detection and face recognition AI model in a cloud-native fashion using MicroShift in an edge computing scenario. In order to do this, we used the [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) family boards (tested on Jetson Xavier NX).
 
-This demo repository is structured into three different folders:
+![Overview](overview.png)
 
-* model-training-pipeline: A Jupyter notebook containing the necessary steps for training face recognition models based on facial images.
-* init-container: A Tekton pipeline for packaging the trained model into a container image that can be rolled out on the edge platform.
-* webapp: Flask server that receives video streams from the cameras and performs face detection and recognition.
+This demo repository is structured into different folders/compontents:
+
+|Compontent/Folder|Description|Required for the demo|
+|---|---|---|
+|`openshift-local/`|[All information to bootstrap the OpenShift Single Node or OpenShift Local enviroment. Basicly OpenShift GitOps and OpenShift Pipelines deployment and configuration.](crc-bootstrap/README.md)| Yes |
+|`model-training-pipeline` |  A Jupyter notebook containing the necessary steps for training face recognition models based on facial images. | Yes |
+|`local-registry-deploy/`|Registry in the edge deployed on NVidia Jetson| Yes |
+|`webapp/`| Flask server that receives video streams from the cameras and performs face detection and recognition. Available via https://quay.io/rbohne/ai-for-edge-microshift-demo:webapp | Yes |
+|`webapp-deploy/` | Deployment of webapp via GitOps model. | Yes |
+|`container-images/cpu-only/`|CPU only base image for Python Web application, available via https://quay.io/rbohne/ai-for-edge-microshift-demo:cpu-only | No |
+|`container-images/l4t-cuda-dlib/`|CUDA/GPU enabled base image for Python Web application, available via  https://quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib | No |
+|`container-images/model-container/`|Init container and data store for the model. Build during demo. Example here available:  https://quay.io/rbohne/ai-for-edge-microshift-demo:model |No |
+|`model-training/`|Local model training on your laptop or jetson, just for development purpose. | No |
+|`tinyproxy-for-jetson/` | [Proxy image to start a proxy server for the Nvidia Jetson.]( tinyproxy-for-jetson/README.md ) | No |
+
+## Run the demo
+
+### 1) Show the Web app:
+    http://webapp-ai-for-edge.cluster.local/
+    => Nothing recognitced
+
+### 2) Run model (re)training
+
+1. In the RHODS dashboard, open the `model training` workbench in your Data Science Project.
+2. Open the `face-images` folder. The training workflow will create an embedding for each face image with file ending `.jpg` within this folder. It will use the file name (excluding the file ending) as the name of the corresponding person. Upload new face images to this folder to train new face recognition models and thereby enable the edge application to recognize new faces.
+3. Open the `training-workflow.ipynb` notebook within the `model-training-pipeline` folder of the cloned repository.
+4. Open the `Object Storage Browser` JupyterLab extension in the left toolbar. Enter your S3 endpoint and credentials and log in. You should see a list of S3 buckets including the `models` bucket. Open the `models` bucket.
+5. Run the notebook cells from top to bottom.
+6. After executing the `Upload model to S3` cell you should see a new folder in the object storage browser. Its name indicates the timestamp (version) of the uploaded model. Within that folder, you should see the file `model.data`, which is the packaged model binary.
+
+The ML development and training stage is concluded. In the next step we'll package the trained model into a container that can be shipped to the target edge platform.
+
+### 3) Put the model into the container and push to edge via Pipeline:
+    https://console-openshift-console.apps-crc.testing/pipelines/ns/rhte-pipeline
+
+### 4) Update the `webapp-deploy/deployment.yaml`
+to use the new init container image with the updated model.
+
+Example diff:
+```diff
+$ git diff webapp-deploy/deployment.yaml
+diff --git a/webapp-deploy/deployment.yaml b/webapp-deploy/deployment.yaml
+index 10da805..1824e47 100644
+--- a/webapp-deploy/deployment.yaml
++++ b/webapp-deploy/deployment.yaml
+@@ -33,7 +33,7 @@ spec:
+     spec:
+       serviceAccountName: privileged
+       initContainers:
+-      - image: default-registry.cluster.local/ai-for-edge/model:2302011505
++      - image: default-registry.cluster.local/ai-for-edge/model:2302011506
+         imagePullPolicy: IfNotPresent
+         name: model
+         volumeMounts:
+$
+```
+
+### 5) Rollout changes via OpenShift GitOps
+    https://openshift-gitops-server-openshift-gitops.apps-crc.testing/applications/openshift-gitops/ai-for-edge-webapp?view=tree&resource=
+
+### 6) Show WebApp again and now with green boxes - or at least one.
+
+### 7) Optional: Show GPU stats via tegrastats
+
+### Video of the Demo:
+
+<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/8dHpNAPSgZ0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+https://www.youtube.com/watch?v=8dHpNAPSgZ0
 
 ## Set Up
 
@@ -40,6 +106,84 @@ We assume that you have set up an S3 storage instance or have write permissions 
     - Select `Add data connection`
 9. Check the status of your `model training` workbench. Once it's `Running`, select `Open`. Select `Allow selected permissions`.
 10. In the workbench open the Git client from the left toolbar. Select `Clone a Repository`. Enter the URI of this repository and select `Clone`.
+
+### Setting up OpenShift Local / OpenShift Single Node
+
+During the demo we using OpenShift Local running on the presenter laptop
+
+**Required:**
+ * Running openshift local, follow the [officia documetation](https://developers.redhat.com/products/openshift-local/overview)
+
+
+Install OpenShift GitOps & OpenShift Pipelines via:
+```bash
+oc apply -k openshift-local/
+```
+
+Added cluster to argocd instance
+
+```bash
+# Login into MicroShift at Nvidia Jetson
+oc login -u kubeadmin https://192.168.5.5:6443/
+
+# Login into OpenShift GitOps at OpenShift Local instance
+argocd login ...
+
+# Add cluster to argocd instance
+argocd cluster add $(oc config current-context )
+```
+
+Example outpur of `argocd cluster list`:
+```bash
+$ argocd cluster list
+SERVER                          NAME        VERSION  STATUS      MESSAGE  PROJECT
+https://192.168.5.5:6443        jetson      1.21     Successful
+https://kubernetes.default.svc  in-cluster
+```
+
+Apply ArgoCD Application:
+```bash
+oc apply -f openshift-local/ai-for-edge-webapp.application.yaml
+```
+
+Apply `push-model-to-edge-pipeline` Pipeline:
+```bash
+# Create project/namespace
+oc new-project rhte-pipeline
+oc apply -f push-model-to-edge-pipeline/buildah-with-dns.task.yaml
+# You may want to adjust the defaults of S3_ENDPOINT_URL, BUCKET_NAME,
+#      git_repository_url.. first
+oc apply -f push-model-to-edge-pipeline/push-model-to-edge.pipeline.yaml
+
+# Add S3 bucket access
+
+export AWS_ACCESS_KEY=...
+export AWS_SECRET_ACCESS_KEY=...
+
+cat >credentials <<EOF
+[default]
+aws_access_key_id     = ${AWS_ACCESS_KEY}
+aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+EOF
+
+oc create secret generic aws-credentials --from-file=credentials=credentials
+```
+
+
+### Running local proxy for the jetson
+
+**Build**
+```bash
+cd tinyproxy-for-jetson/
+podman build -t proxy:latest .
+```
+
+**Run**
+```bash
+podman run -ti --rm \
+    -p 192.168.5.1:8080:8080 \
+    --name proxy proxy:latest
+```
 
 ### Running MicroShift (jetson L4T)
 
@@ -207,28 +351,7 @@ This web will show you the feeds of the camera and you will be able to see how f
 
 ![Screenshot](screenshot.png)
 
-## Conclusion
-
-This demo is just a simple use case of what an edge computing scenario would look like. Running AI/ML models on top of an embedded system like the NVIDIA Jetson family, and leveraging cloud-native capabilities with MicroShift.
-
-We hope you enjoy it!
-
-# Installing manifests
-
-MicroShift has a feature to auto-apply manifests from disk during startup,
-you can find the documentation here https://microshift.io/docs/user-documentation/manifests/
-
-After applying the new manifests restart MicroShift with `systemctl restart microshift`.
-
-```bash
-
-mkdir -p /var/lib/microshift/manifests
-cd /var/lib/microshift/manifests
-```
-
-TODO Add webapp deployment manifests...
-
-# WebApp Development at the jetson
+# WebApp development at the jetson
 
 ```bash
 
@@ -268,15 +391,13 @@ Press CTRL+C to quit
 
 ```
 
-## Run the demo
+## Some usefull links/resources:
+* <https://docs.opencv.org/4.x/d2/de6/tutorial_py_setup_in_ubuntu.html>
+* <https://developer.ridgerun.com/wiki/index.php/How_to_Capture_Frames_from_Camera_with_OpenCV_in_Python>
 
-### Run model (re)training
 
-1. In the RHODS dashboard, open the `model training` workbench in your Data Science Project.
-2. Open the `face-images` folder. The training workflow will create an embedding for each face image with file ending `.jpg` within this folder. It will use the file name (excluding the file ending) as the name of the corresponding person. Upload new face images to this folder to train new face recognition models and thereby enable the edge application to recognize new faces.
-3. Open the `training-workflow.ipynb` notebook within the `model-training-pipeline` folder of the cloned repository.
-4. Open the `Object Storage Browser` JupyterLab extension in the left toolbar. Enter your S3 endpoint and credentials and log in. You should see a list of S3 buckets including the `models` bucket. Open the `models` bucket.
-5. Run the notebook cells from top to bottom.
-6. After executing the `Upload model to S3` cell you should see a new folder in the object storage browser. Its name indicates the timestamp (version) of the uploaded model. Within that folder, you should see the file `model.data`, which is the packaged model binary.
+## Conclusion
 
-The ML development and training stage is concluded. In the next step we'll package the trained model into a container that can be shipped to the target edge platform.
+This demo is just a simple use case of what an edge computing scenario would look like. Running AI/ML models on top of an embedded system like the Nvidia Jetson family, and leveraging cloud-native capabilities with MicroShift.
+
+We hope you enjoy it!

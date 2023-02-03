@@ -72,9 +72,7 @@ $
 
 ### Video of the Demo:
 
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/8dHpNAPSgZ0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
-https://www.youtube.com/watch?v=8dHpNAPSgZ0
+[![AI for edge deom video](https://img.youtube.com/vi/8dHpNAPSgZ0/0.jpg)](https://www.youtube.com/watch?v=8dHpNAPSgZ0 "AI for edge deom video")
 
 ## Set Up
 

@@ -24,8 +24,10 @@ This demo repository is structured into different folders/compontents:
 ## Run the demo
 
 ### 1) Show the Web app:
-    http://webapp-ai-for-edge.cluster.local/
-    => Nothing recognitced
+
+http://webapp-ai-for-edge.cluster.local/
+
+=> Nothing recognitced
 
 ### 2) Run model (re)training
 
@@ -39,7 +41,8 @@ This demo repository is structured into different folders/compontents:
 The ML development and training stage is concluded. In the next step we'll package the trained model into a container that can be shipped to the target edge platform.
 
 ### 3) Put the model into the container and push to edge via Pipeline:
-    https://console-openshift-console.apps-crc.testing/pipelines/ns/rhte-pipeline
+
+https://console-openshift-console.apps-crc.testing/pipelines/ns/rhte-pipeline
 
 ### 4) Update the `webapp-deploy/deployment.yaml`
 to use the new init container image with the updated model.

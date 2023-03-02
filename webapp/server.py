@@ -83,7 +83,10 @@ def streamer_thread(device_id):
 
 def process_streamer_frame(frame):
     global output_frame, lock
+    tmp = time.time()
     frame_out = find_and_mark_faces(frame, app.logger)
+    total_time_famf = (time.time() - tmp)
+    app.logger.debug("Time to process the frame: " + str(1000*total_time_famf) + " ms")
     with lock:
         output_frame = frame_out.copy()
 

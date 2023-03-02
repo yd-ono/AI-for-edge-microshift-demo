@@ -26,6 +26,16 @@ load_known_faces(os.environ.get('MODEL_FILENAME', 'model.data'),app.logger)
 # v4l2-ctl --list-devices
 # v4l2-ctl -d /dev/video0 --list-formats-ext
 cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)),cv2.CAP_V4L2)
+video_fps = cap.get(cv2.CAP_PROP_FPS)
+app.logger.info("FPS of the Videosource: %d",video_fps)
+processing_fps = int(os.environ.get('VIDEO_PROCESSING_FPS', 1))
+
+if video_fps > processing_fps:
+    skip_rate = round(video_fps/processing_fps)
+else:
+    skip_rate = 1
+
+app.logger.info("Caluclated skip rate based on VIDEO_PROCESSING_FPS:%d : %d",processing_fps,skip_rate)
 
 if not (cap.isOpened()):
     app.logger.critical("Could not open video device")
@@ -57,16 +67,21 @@ def streamer_thread(device_id):
 
     app.logger.info("starting streamer /dev/video%s", device_id)
 
-    while(True):
-        ret, frame = cap.read()
+    frame_no = 0  # Local variable to keep track of video frame number
 
+    while(True):
+        ret = cap.grab()
         if not ret:
             app.logger.info("Can't receive frame (stream end?). Exiting ...")
             time.sleep(3)
             break
 
-        if frame is not None:
-            process_streamer_frame(frame)
+        frame_no += 1
+        if (frame_no % skip_rate == 0):  # Processing frame
+            status, frame = cap.retrieve()
+
+            if frame is not None:
+                process_streamer_frame(frame)
 
 def process_streamer_frame(frame):
     global output_frame, lock

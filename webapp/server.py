@@ -18,7 +18,8 @@ output_frame = None
 lock = threading.Lock()
 
 app = Flask(__name__)
-app.logger.setLevel(logging.INFO)
+# WEB_LOGLEVEL=['INFO','DEBUG']..
+app.logger.setLevel(level=os.environ.get('WEB_LOGLEVEL', 'INFO').upper())
 
 load_known_faces(os.environ.get('MODEL_FILENAME', 'model.data'),app.logger)
 

@@ -89,7 +89,7 @@ We assume that you have set up an S3 storage instance or have write permissions 
 
 1. Install `Red Hat OpenShift Data Science` operator through the Operator Hub.
 2. Install `Red Hat OpenShift Pipelines` operator (1.7 or 1.8) through the Operator Hub.
-3. Deploy `manifests/face-recognition-notebook.yaml` into namespace `redhat-ods-applications`.
+3. Deploy [manifests/face-recognition-notebook.yaml](manifests/face-recognition-notebook.yaml) into namespace `redhat-ods-applications`.
 4. Open RHODS dashboard (`Red Hat OpenShift Data Science` in add-on menu in top right toolbar).
 5. In the `Data Science Projects` tab, select `Create data science project`. Enter the name `demo-project` and select `Create`.
 6. Select `Create workbench`:

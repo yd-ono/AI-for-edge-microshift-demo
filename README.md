@@ -77,6 +77,11 @@ $
 
 [![AI for edge deom video](https://img.youtube.com/vi/8dHpNAPSgZ0/0.jpg)](https://www.youtube.com/watch?v=8dHpNAPSgZ0 "AI for edge deom video")
 
+## Hardware Set Up
+
+![hardware-set-up](hardware-set-up.png)
+
+
 ## Set Up
 
 The demo is set up on two OpenShift instances representing the environments of an end-to-end ML workflow:

@@ -25,7 +25,7 @@ load_known_faces(os.environ.get('MODEL_FILENAME', 'model.data'),app.logger)
 
 # v4l2-ctl --list-devices
 # v4l2-ctl -d /dev/video0 --list-formats-ext
-cap = cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)),cv2.CAP_V4L2)
+cap = cv2.VideoCapture(os.environ.get('VIDEO_URL'))
 video_fps = cap.get(cv2.CAP_PROP_FPS)
 app.logger.info("FPS of the Videosource: %d",video_fps)
 processing_fps = int(os.environ.get('VIDEO_PROCESSING_FPS', 1))

@@ -1,51 +1,52 @@
 # AI at the Edge with MicroShift
 
-This repository contains the code developed for the talk "[Image recognition on the Edge with Red Hat Device Edge (MicroShift) & Nvidia](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)" developed by Max Murakami and Robert Bohne based on the fantastic work of [Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)
+このリポジトリには、[Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)の素晴らしい仕事に基づいてMax MurakamiとRobert Bohneが開発した講演「[Red Hat Device Edge (MicroShift) & Nvidiaによるエッジでの画像認識](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)」のために開発されたコードが含まれています。
 
-The end goal of this demo is to run a face detection and face recognition AI model in a cloud-native fashion using MicroShift in an edge computing scenario. In order to do this, we used the [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/) family boards (tested on Jetson Xavier NX).
+このデモの最終目標は、エッジ・コンピューティング・シナリオでMicroShiftを使用して、クラウドネイティブな方法で顔検出と顔認識AIモデルを実行することです。そのために、[NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)ファミリーのボード（Jetson Xavier NXでテスト）を使用しました。
+
 
 ![Overview](overview.png)
 
-This demo repository is structured into different folders/compontents:
+このデモリポジトリは、さまざまなフォルダ/コンテンツで構成されています：
 
-|Compontent/Folder|Description|Required for the demo|
+|コンポーネント/フォルダ|概要|デモでの必要性|
 |---|---|---|
-|`openshift-local/`|[All information to bootstrap the OpenShift Single Node or OpenShift Local enviroment. Basicly OpenShift GitOps and OpenShift Pipelines deployment and configuration.](crc-bootstrap/README.md)| Yes |
-|`model-training-pipeline` |  A Jupyter notebook containing the necessary steps for training face recognition models based on facial images. | Yes |
-|`local-registry-deploy/`|Registry in the edge deployed on NVidia Jetson| Yes |
-|`webapp/`| Flask server that receives video streams from the cameras and performs face detection and recognition. Available via https://quay.io/rbohne/ai-for-edge-microshift-demo:webapp | Yes |
+|`openshift-local/`|[OpenShift Single NodeまたはOpenShift Local環境をブートストラップするためのすべての情報。基本的なOpenShift GitOpsとOpenShift Pipelinesのデプロイと設定。](crc-bootstrap/README.md)| Yes |
+|`model-training-pipeline` |  顔画像に基づく顔認識モデルの学習に必要なステップを含むJupyterノートブック。 | Yes |
+|`local-registry-deploy/`|NVIDIA Jetsonで展開されるエッジのレジストリ| Yes |
+|`webapp/`| カメラからのビデオストリームを受信し、顔検出と認識を実行するFlaskサーバ。https://quay.io/rbohne/ai-for-edge-microshift-demo:webapp | Yes |
 |`webapp-deploy/` | Deployment of webapp via GitOps model. | Yes |
-|`container-images/cpu-only/`|CPU only base image for Python Web application, available via https://quay.io/rbohne/ai-for-edge-microshift-demo:cpu-only | No |
-|`container-images/l4t-cuda-dlib/`|CUDA/GPU enabled base image for Python Web application, available via  https://quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib | No |
-|`container-images/model-container/`|Init container and data store for the model. Build during demo. Example here available:  https://quay.io/rbohne/ai-for-edge-microshift-demo:model |No |
-|`model-training/`|Local model training on your laptop or jetson, just for development purpose. | No |
-|`tinyproxy-for-jetson/` | [Proxy image to start a proxy server for the Nvidia Jetson.]( tinyproxy-for-jetson/README.md ) | No |
+|`container-images/cpu-only/`|Pythonウェブアプリケーション用のCPUのみのベースイメージ。https://quay.io/rbohne/ai-for-edge-microshift-demo:cpu-only | No |
+|`container-images/l4t-cuda-dlib/`|CUDA/GPU 対応の Python Web アプリケーション用ベースイメージ。https://quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib から入手可能。 | No |
+|`container-images/model-container/`|モデルのコンテナとデータストアを初期化する。デモ中にビルドする。サンプルはこちら: https://quay.io/rbohne/ai-for-edge-microshift-demo:model |No |
+|`model-training/`|ラップトップやJetsonで、ローカルモデルのトレーニングができる。 | No |
+|`tinyproxy-for-jetson/` | [NVIDIA Jetson用のプロキシサーバーを起動するプロキシイメージ]( tinyproxy-for-jetson/README.md ) | No |
 
 ## Run the demo
 
-### 1) Show the Web app:
+### 1) Webappへのアクセス:
 
 http://webapp-ai-for-edge.cluster.local/
 
 => Nothing recognitced
 
-### 2) Run model (re)training
+### 2) モデルの(再)学習
 
-1. In the RHODS dashboard, open the `model training` workbench in your Data Science Project.
-2. Open the `face-images` folder. The training workflow will create an embedding for each face image with file ending `.jpg` within this folder. It will use the file name (excluding the file ending) as the name of the corresponding person. Upload new face images to this folder to train new face recognition models and thereby enable the edge application to recognize new faces.
-3. Open the `training-workflow.ipynb` notebook within the `model-training-pipeline` folder of the cloned repository.
-4. Open the `Object Storage Browser` JupyterLab extension in the left toolbar. Enter your S3 endpoint and credentials and log in. You should see a list of S3 buckets including the `models` bucket. Open the `models` bucket.
-5. Run the notebook cells from top to bottom.
-6. After executing the `Upload model to S3` cell you should see a new folder in the object storage browser. Its name indicates the timestamp (version) of the uploaded model. Within that folder, you should see the file `model.data`, which is the packaged model binary.
+1. RHODSダッシュボードで、データサイエンスプロジェクトの`model training`ワークベンチを開きます。
+2. face-images`フォルダを開きます。トレーニングワークフローは、このフォルダ内の末尾が`.jpg`である各顔画像の埋め込みを作成します。ファイル名（末尾を除く）を対応する人物の名前として使用します。このフォルダに新しい顔画像をアップロードすることで、新しい顔認識モデルを学習し、それによってエッジアプリケーションが新しい顔を認識できるようになります。
+3. クローンしたリポジトリの `model-training-pipeline` フォルダ内の `training-workflow.ipynb` ノートブックを開きます。
+4. 左のツールバーにある `Object Storage Browser` JupyterLab 拡張を開く。S3のエンドポイントと認証情報を入力し、ログインします。models`バケットを含むS3バケットのリストが表示されます。models`バケットを開く。
+5. ノートブックのセルを上から下に実行する。
+6. Upload model to S3` セルを実行すると、オブジェクトストレージブラウザに新しいフォルダが表示されるはずです。その名前は、アップロードされたモデルのタイムスタンプ（バージョン）を示しています。そのフォルダの中に、パッケージ化されたモデルのバイナリである `model.data` というファイルがあるはずです。
 
-The ML development and training stage is concluded. In the next step we'll package the trained model into a container that can be shipped to the target edge platform.
+これでMLの開発とトレーニングの段階は終了です。次のステップでは、学習済みのモデルをコンテナにパッケージして、ターゲットのエッジプラットフォームに出荷できるようにします。
 
-### 3) Put the model into the container and push to edge via Pipeline:
+
+### 3) MLモデルをコンテナに入れ、パイプラインでエッジにプッシュ：
 
 https://console-openshift-console.apps-crc.testing/pipelines/ns/rhte-pipeline
 
-### 4) Update the `webapp-deploy/deployment.yaml`
-to use the new init container image with the updated model.
+### 4) `webapp-deploy/deployment.yaml`をアップデート
 
 Example diff:
 ```diff
@@ -66,12 +67,12 @@ index 10da805..1824e47 100644
 $
 ```
 
-### 5) Rollout changes via OpenShift GitOps
+### 5) OpenShift GitOpsでロールアウト
     https://openshift-gitops-server-openshift-gitops.apps-crc.testing/applications/openshift-gitops/ai-for-edge-webapp?view=tree&resource=
 
-### 6) Show WebApp again and now with green boxes - or at least one.
+### 6) WebAppを再び表示し、今度は緑のボックスで表示
 
-### 7) Optional: Show GPU stats via tegrastats
+### 7) オプション： tegrastats経由でGPUの統計情報を表示する
 
 ### Video of the Demo:
 
@@ -84,25 +85,26 @@ $
 
 ## Set Up
 
-The demo is set up on two OpenShift instances representing the environments of an end-to-end ML workflow:
-- an OpenShift cluster for training the models and building the containers (data science environment in central data center of public cloud)
-- a MicroShift instance deployed on a device in an edge location, which is connected to a camera. It hosts the AI web app, which processes the incoming video stream and performs face recognition based on the encapsulated face recognition models.
+デモは、エンドツーエンドのMLワークフローの環境を表す2つのOpenShiftインスタンス上にセットアップされています：
+- モデルのトレーニングとコンテナの構築のためのOpenShiftクラスタ（パブリッククラウドの中央データセンターにあるデータサイエンス環境）
+- エッジロケーションのデバイスにデプロイされたMicroShiftインスタンス。AIウェブアプリをホストし、入力されたビデオストリームを処理し、カプセル化された顔認識モデルに基づいて顔認識を実行する。
 
-### Setting up model training and packaging on the central OCP cluster
 
-We assume that you have set up an S3 storage instance or have write permissions on an existing S3 storage instance.
+### 中央のOCPクラスタにモデルのトレーニングとパッケージングをセットアップする
 
-1. Install `Red Hat OpenShift Data Science` operator through the Operator Hub.
-2. Install `Red Hat OpenShift Pipelines` operator (1.7 or 1.8) through the Operator Hub.
-3. Deploy [manifests/face-recognition-notebook.yaml](manifests/face-recognition-notebook.yaml) into namespace `redhat-ods-applications`.
-4. Open RHODS dashboard (`Red Hat OpenShift Data Science` in add-on menu in top right toolbar).
-5. In the `Data Science Projects` tab, select `Create data science project`. Enter the name `demo-project` and select `Create`.
-6. Select `Create workbench`:
+S3ストレージインスタンスをセットアップしているか、既存のS3ストレージインスタンスに書き込み権限を持っていると仮定する。
+
+1. Operator Hubから`Red Hat OpenShift Data Science` operatorをインストール
+2. Operator Hubから`Red Hat OpenShift Pipelines` operator (1.7 or 1.8) をインストール
+3. [manifests/face-recognition-notebook.yaml](manifests/face-recognition-notebook.yaml)を`redhat-ods-applications` namespaceへデプロイ
+4. RHODSのダッシュボードを開く (ツールバー上に追加された`Red Hat OpenShift Data Science` メニューで開けます).
+5. `Data Science Projects`タブにて, `Create data science project`を選択します.そして、 名前へ`demo-project`を入力し、`Create`を押下します。
+6. `Create workbench`を選択し、以下を入力
     - Name: `model training`
     - Notebook image: `Face recognition Elyra`
     - Select `Create workbench`
-7. In your S3 storage, create a bucket with name `models`.
-8. In the RHODS dashboard, select `Add data connection`:
+7. S3ストレージ内で, `models`と言う名前のバケットを作成します。
+8. RHODS ダッシュボードにて, `Add data connection`を選択し、以下を入力します。
     - Name: `models`
     - AWS_ACCESS_KEY: your S3 access key
     - AWS_SECRET_ACCESS_KEY: your S3 secret key
@@ -110,8 +112,8 @@ We assume that you have set up an S3 storage instance or have write permissions 
     - AWS_S3_BUCKET: `models`
     - Connected workbench: `model training`
     - Select `Add data connection`
-9. Check the status of your `model training` workbench. Once it's `Running`, select `Open`. Select `Allow selected permissions`.
-10. In the workbench open the Git client from the left toolbar. Select `Clone a Repository`. Enter the URI of this repository and select `Clone`.
+9. `model training` workbenchの状態を確認します。状態が`Running`となったら、`Open`を選択してください。
+10. workbenchを開き、左側のツールバーから、`Git client`を選択します。そして、`Clone a Repository`を選択し、GitリポジトリのURLを指定して、`Clone`を選択してください。
 
 ### Setting up OpenShift Local / OpenShift Single Node
 

@@ -23,8 +23,7 @@ app.logger.setLevel(level=os.environ.get('WEB_LOGLEVEL', 'INFO').upper())
 
 load_known_faces(os.environ.get('MODEL_FILENAME', 'model.data'),app.logger)
 
-# v4l2-ctl --list-devices
-# v4l2-ctl -d /dev/video0 --list-formats-ext
+# RTMP Server URL (rtmp://foo.bar)
 cap = cv2.VideoCapture(os.environ.get('VIDEO_URL'))
 video_fps = cap.get(cv2.CAP_PROP_FPS)
 app.logger.info("FPS of the Videosource: %d",video_fps)

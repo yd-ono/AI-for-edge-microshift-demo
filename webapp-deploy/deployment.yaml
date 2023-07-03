@@ -34,7 +34,7 @@ spec:
             name: model
           env:
           - name: VIDEO_STREAM_URL
-            value: rtmp://nginx-rtmp.nginx-rtmp.svc.cluster.local:1935
+            value: rtmp://nginx-rtmp.nginx-rtmp:1935/live/test
           - name: MODEL_FILENAME
             value: /model/model.data
           - name: FACE_LOC_MODEL

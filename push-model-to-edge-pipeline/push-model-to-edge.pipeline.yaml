@@ -19,7 +19,7 @@ spec:
     name: git_repository_url
     type: string
 
-  - default: default-registry.cluster.local/ai-for-edge/model
+  - default: default-registry.apps.example.com/ai-for-edge/model
     name: target_image_url
     type: string
     description: Image name w/o tag, MODEL_VERSION is used for the tag.

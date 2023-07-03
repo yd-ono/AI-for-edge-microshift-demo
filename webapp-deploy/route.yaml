@@ -12,6 +12,7 @@ metadata:
     app.openshift.io/runtime: python
   name: webapp
 spec:
+  host: webapp.cluster.local
   port:
     targetPort: 5000-tcp
   to:

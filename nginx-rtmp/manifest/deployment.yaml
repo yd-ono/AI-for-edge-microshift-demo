@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app: nginx-rtmp
+  labels:
+    app: nginx-rtmp
+  name: nginx-rtmp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-rtmp
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        app: nginx-rtmp
+      labels:
+        app: nginx-rtmp
+    spec:
+      containers:
+      - image: localhost/nginx-rtmp:v1
+        imagePullPolicy: IfNotPresent
+        name: nginx-rtmp
+        volumeMounts:
+        - name: conf
+          readOnly: true
+          mountPath: /home/nginx/etc/
+        - name: output
+          mountPath: /home/nginx/rec
+        securityContext:
+          privileged: true
+        ports:
+        - containerPort: 1935
+          protocol: TCP
+      restartPolicy: Always
+      volumes:
+       - name: conf
+         configMap:
+           name: nginx-config
+           items:
+            - key: nginx.conf
+              path: nginx.conf
+       - name: output
+         hostPath:
+           path: /home/redhat/camera-demo/videosave/output
+           type: DirectoryOrCreate
+      serviceAccount: hostpath-provisioner
+      serviceAccountName: hostpath-provisioner

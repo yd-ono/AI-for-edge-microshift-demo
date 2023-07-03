@@ -2,8 +2,6 @@ kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: registry
-  annotations:
-    volume.kubernetes.io/selected-node: jetson
   namespace: registry
 spec:
   accessModes:
@@ -11,4 +9,4 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: kubevirt-hostpath-provisioner
+  storageClassName: topolvm-provisioner

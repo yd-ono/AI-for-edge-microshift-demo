@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  nginx.conf: |-
+    worker_processes auto;
+    rtmp_auto_push on;
+    events {}
+    error_log /home/nginx/var/log/error.log;
+    rtmp {
+        server {
+            listen 1935;
+            listen [::]:1935 ipv6only=on;
+            access_log  /home/nginx/var/log/rtmp.access.log;
+
+            application live {
+                live on;
+                record all;
+                record_path /home/nginx/rec;
+                record_suffix -%Y%m%d%H%M%S.flv;
+                record_max_size 50M;
+                exec_record_done /bin/ffmpeg -i $path -f mp4 $dirname/$basename.mp4;
+            }
+        }
+    }

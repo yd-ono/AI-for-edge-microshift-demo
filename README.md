@@ -150,7 +150,7 @@ argocd cluster add $(oc config current-context)
 ```bash
 argocd cluster list
 SERVER                          NAME        VERSION  STATUS      MESSAGE                                                  PROJECT
-https://192.168.3.11:6443       microshift  1.26     Successful                                                           
+https://$MICROSHIFT_IP:6443       microshift  1.26     Successful                                                           
 https://kubernetes.default.svc  in-cluster           Unknown     Cluster has no applications and is not being monitored. 
 ```
 
@@ -160,7 +160,7 @@ unset KUBECONFIG
 
 ArgoCD Applicationをapplyします。
 ```bash
-oc apply -f openshift-local/ai-for-edge-webapp.application.yaml
+cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f -
 ```
 
 `push-model-to-edge-pipeline` Pipelineを作成します。

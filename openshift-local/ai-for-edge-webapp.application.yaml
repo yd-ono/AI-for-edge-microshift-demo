@@ -6,7 +6,7 @@ metadata:
 spec:
   destination:
     namespace: ai-for-edge
-    server: https://192.168.3.11:6443
+    server: https://$MICROSHIFT_IP:6443
   project: default
   source:
     path: webapp-deploy

@@ -167,7 +167,17 @@ cat openshift-local/registry.application.yaml | envsubst | oc apply -f -
 MicroShiftの`/etc/hosts`へローカルレジストリのURLを追記します。
 ```bash
 echo "$MICROSHIFT_IP default-registry.cluster.local" >> /etc/hosts
-echo "$MICROSHIFT_IP default-registry-ui.cluster.local" >> /etc/hosts
+```
+
+そして、`/etc/crio.conf`へ作成したローカルレジストリを`insecure registry`として追記します。
+```bash
+sudo su
+cat /etc/crio/crio.conf
+...
+insecure_registries=["default-registry.cluster.local"]
+...
+
+systemctl restart crio
 ```
 
 `push-model-to-edge-pipeline` Pipelineを作成します。

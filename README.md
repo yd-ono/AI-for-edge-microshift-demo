@@ -164,12 +164,10 @@ cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f
 cat openshift-local/registry.application.yaml | envsubst | oc apply -f -
 ```
 
-MicroShiftへローカルレジストリを追加します。
+MicroShiftの`/etc/hosts`へローカルレジストリのURLを追記します。
 ```bash
-cat /etc/containers/registries.conf
-...
-[registries.insecure]
-registries = ['default-registry.cluster.local']
+echo "$MICROSHIFT_IP default-registry.cluster.local" >> /etc/hosts
+echo "$MICROSHIFT_IP default-registry-ui.cluster.local" >> /etc/hosts
 ```
 
 `push-model-to-edge-pipeline` Pipelineを作成します。

@@ -16,14 +16,14 @@ spec:
         deployment: webapp
     spec:
       initContainers:
-      - image: default.registry:5000/ai-for-edge/model:2307030930
+      - image: default.registry.svc.cluster.local:5000/ai-for-edge/model:2307030930
         imagePullPolicy: Always
         name: model
         volumeMounts:
         - name: model
           mountPath: /dst/
       containers:
-        - image: default.registry:5000/ai-for-edge/webapp:v1.0
+        - image: default.registry.svc.cluster.local:5000/ai-for-edge/webapp:v1.0
           imagePullPolicy: Always
           name: webapp
           ports:

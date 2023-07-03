@@ -161,6 +161,15 @@ unset KUBECONFIG
 ArgoCD Applicationをapplyします。
 ```bash
 cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f -
+cat openshift-local/registry.application.yaml | envsubst | oc apply -f -
+```
+
+MicroShiftへローカルレジストリを追加します。
+```bash
+cat /etc/containers/registries.conf
+...
+[registries.insecure]
+registries = ['default-registry.cluster.local']
 ```
 
 `push-model-to-edge-pipeline` Pipelineを作成します。

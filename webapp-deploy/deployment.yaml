@@ -1,24 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  annotations:
-    alpha.image.policy.openshift.io/resolve-names: '*'
-    app.openshift.io/route-disabled: "false"
-    app.openshift.io/vcs-ref: ""
-    app.openshift.io/vcs-uri: https://github.com/yd-ono/AI-for-edge-microshift-demo
-    # image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"server:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"webapp\")].image","pause":"false"}]'
-  labels:
-    app: webapp
-    app.kubernetes.io/component: webapp
-    app.kubernetes.io/instance: webapp
-    app.kubernetes.io/name: webapp
-    app.kubernetes.io/part-of: python
-    app.openshift.io/runtime: python
   name: webapp
 spec:
-  progressDeadlineSeconds: 600
   replicas: 1
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app: webapp
@@ -26,35 +11,30 @@ spec:
     type: Recreate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: webapp
         deployment: webapp
     spec:
-      serviceAccountName: privileged
       initContainers:
-      - image: default-registry.cluster.local/ai-for-edge/model:2302011505
+      - image: default-registry.cluster.local/ai-for-edge/model:2307030930
         imagePullPolicy: Always
         name: model
         volumeMounts:
         - name: model
           mountPath: /dst/
       containers:
-        - image: default-registry.cluster.local/ai-for-edge/webapp:latest
+        - image: default-registry.cluster.local/ai-for-edge/webapp:v1.0
           imagePullPolicy: Always
           name: webapp
           ports:
             - containerPort: 5000
               protocol: TCP
-          resources: {}
-          terminationMessagePath: /dev/termination-log
-          terminationMessagePolicy: File
           volumeMounts:
-          - mountPath: /dev/video0
-            name: dev-video0
           - mountPath: /model/
             name: model
           env:
+          - name: VIDEO_STREAM_URL
+            value: rtmp://nginx-rtmp.nginx-rtmp.svc.cluster.local:1935
           - name: MODEL_FILENAME
             value: /model/model.data
           - name: FACE_LOC_MODEL
@@ -71,16 +51,6 @@ spec:
             value: "800"
           - name: CAP_PROP_FRAME_HEIGHT
             value: "600"
-          securityContext:
-            privileged: true
       volumes:
-      - name: dev-video0
-        hostPath:
-          path: /dev/video0
       - name: "model"
         emptyDir: {}
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30

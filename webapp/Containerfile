@@ -1,4 +1,4 @@
-FROM quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib
+FROM quay.io/yono/ai-for-edge-microshift-demo:l4t-cuda-dlib
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \

@@ -167,7 +167,7 @@ oc apply -f openshift-local/ai-for-edge-webapp.application.yaml
 ```bash
 # Create project/namespace
 oc new-project rhte-pipeline
-oc apply -f push-model-to-edge-pipeline/buildah-with-dns.task.yaml
+cat push-model-to-edge-pipeline/buildah-with-dns.task.yaml | envsubst | oc apply -f -
 # You may want to adjust the defaults of S3_ENDPOINT_URL, BUCKET_NAME,
 #      git_repository_url.. first
 oc apply -f push-model-to-edge-pipeline/push-model-to-edge.pipeline.yaml

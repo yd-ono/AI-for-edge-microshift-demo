@@ -1,4 +1,4 @@
-FROM quay.io/yono/ai-for-edge-microshift-demo:cpu-only
+FROM quay.io/yono/ai-for-edge-microshift-demo:cpu-only-x86_64
 
 COPY requirements.txt /
 

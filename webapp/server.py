@@ -11,9 +11,7 @@ import os
 import time
 
 from faces import *
-# from mjpeg_streamer import MjpegReader
 
-# frame to be shared via mjpeg server out
 output_frame = None
 lock = threading.Lock()
 
@@ -24,7 +22,7 @@ app.logger.setLevel(level=os.environ.get('WEB_LOGLEVEL', 'INFO').upper())
 load_known_faces(os.environ.get('MODEL_FILENAME', 'model.data'),app.logger)
 
 # RTMP Server URL (rtmp://foo.bar)
-cap = cv2.VideoCapture(os.environ.get('VIDEO_URL'))
+cap = cv2.VideoCapture(os.environ.get('VIDEO_STREAM_URL', 'rtmp://nginx-rtmp:1935/live/test'))
 video_fps = cap.get(cv2.CAP_PROP_FPS)
 app.logger.info("FPS of the Videosource: %d",video_fps)
 processing_fps = int(os.environ.get('VIDEO_PROCESSING_FPS', 1))
@@ -37,7 +35,7 @@ else:
 app.logger.info("Caluclated skip rate based on VIDEO_PROCESSING_FPS:%d : %d",processing_fps,skip_rate)
 
 if not (cap.isOpened()):
-    app.logger.critical("Could not open video device")
+    app.logger.critical("Could not open video stream")
     exit(1)
 
 
@@ -57,12 +55,12 @@ def healthz():
 @app.route('/')
 def index():
     app.logger.info("Start thread...")
-    threading.Thread(target=streamer_thread, name=None, args=[os.environ.get('VIDEO_DEVICE_ID', '0')]).start()
+    threading.Thread(target=streamer_thread, name=None, args=[os.environ.get('VIDEO_STREAM_URL', 'rtmp://nginx-rtmp:1935/live/test')]).start()
     return render_template('index.html')
 
 def streamer_thread(device_id):
 
-    app.logger.info("starting streamer /dev/video%s", device_id)
+    app.logger.info("starting streamer %s", device_id)
 
     frame_no = 0  # Local variable to keep track of video frame number
 

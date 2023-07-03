@@ -47,9 +47,9 @@ spec:
     - name: STORAGE_DRIVER
       value: vfs
     - name: DOCKERFILE
-      value: /workspace/source/container-images/model-container/Containerfile
+      value: /workspace/source/webapp/Containerfile.cpu-only
     - name: CONTEXT
-      value: /workspace/source/container-images/model-container/
+      value: /workspace/source/webapp/
     - name: TLSVERIFY
       value: "false"
     - name: FORMAT

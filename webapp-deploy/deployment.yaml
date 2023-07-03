@@ -16,14 +16,14 @@ spec:
         deployment: webapp
     spec:
       initContainers:
-      - image: default.registry.svc.cluster.local:5000/ai-for-edge/model:2307030930
+      - image: 10.42.0.16:5000/ai-for-edge/model:2307030930
         imagePullPolicy: Always
         name: model
         volumeMounts:
         - name: model
           mountPath: /dst/
       containers:
-        - image: default.registry.svc.cluster.local:5000/ai-for-edge/webapp:v1.0
+        - image: 10.42.0.16:5000/ai-for-edge/webapp:v1.0
           imagePullPolicy: Always
           name: webapp
           ports:
@@ -34,7 +34,7 @@ spec:
             name: model
           env:
           - name: VIDEO_STREAM_URL
-            value: rtmp://nginx-rtmp.nginx-rtmp:1935
+            value: rtmp://nginx-rtmp.nginx-rtmp.svc.cluster.local:1935
           - name: MODEL_FILENAME
             value: /model/model.data
           - name: FACE_LOC_MODEL

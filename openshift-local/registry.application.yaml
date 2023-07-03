@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ai-for-edge-webapp
+  namespace: openshift-gitops
+spec:
+  destination:
+    namespace: ai-for-edge
+    server: https://$MICROSHIFT_IP:6443
+  project: default
+  source:
+    path: local-registry-deploy
+    repoURL: https://github.com/yd-ono/AI-for-edge-microshift-demo
+    targetRevision: main
+  syncPolicy: {}

@@ -16,7 +16,7 @@ spec:
         deployment: webapp
     spec:
       initContainers:
-      - image: default-registry.cluster.local/ai-for-edge/model:2307030930
+      - image: default-registry.cluster.local/ai-for-edge/model:2307031140
         imagePullPolicy: Always
         name: model
         volumeMounts:

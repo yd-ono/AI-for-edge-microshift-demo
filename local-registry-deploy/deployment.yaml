@@ -21,8 +21,8 @@ spec:
         deployment: registry
     spec:
       containers:
-        - image: docker.io/library/registry:2.8.1
-          imagePullPolicy: Never
+        - image: registry:2.8.1
+          imagePullPolicy: IfNotPresent
           name: registry
           ports:
             - containerPort: 5000
@@ -34,8 +34,8 @@ spec:
           - name: "REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED"
             value: "TRUE"
         - name: webui
-          image: docker.io/joxit/docker-registry-ui:latest
-          imagePullPolicy: Never
+          image: joxit/docker-registry-ui:latest
+          imagePullPolicy: IfNotPresent
           env:
           - name: "SINGLE_REGISTRY"
             value: "true"
@@ -43,7 +43,12 @@ spec:
             value: "http://localhost:5000"
           - name: NGINX_LISTEN_PORT
             value: "8080"
+      securityContext:
+        runAsUser: 101          
       volumes:
       - name: storage
         persistentVolumeClaim:
           claimName: registry
+      serviceAccount: registry
+      serviceAccountName: registry
+

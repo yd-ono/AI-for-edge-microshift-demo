@@ -5,6 +5,7 @@ namespace: registry
 
 resources:
 - namespace.yaml
+- sa.yaml
 - pvc.yaml
 - deployment.yaml
 - service.yaml

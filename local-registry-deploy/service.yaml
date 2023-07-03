@@ -14,12 +14,14 @@ spec:
       port: 5000
       protocol: TCP
       targetPort: 5000
+      nodePort: 31000
     - name: webui
       port: 8080
       protocol: TCP
       targetPort: 8080
+      nodePort: 31001
   selector:
     app: registry
     deployment: registry
   sessionAffinity: None
-  type: ClusterIP
+  type: NodePort

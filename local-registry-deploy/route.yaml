@@ -5,6 +5,7 @@ metadata:
     app: registry
   name: default
 spec:
+  host: default-registry.cluster.local
   port:
     targetPort: registry
   to:
@@ -20,6 +21,7 @@ metadata:
     app: registry
   name: webui
 spec:
+  host: default-registry-ui.cluster.local
   port:
     targetPort: webui
   to:

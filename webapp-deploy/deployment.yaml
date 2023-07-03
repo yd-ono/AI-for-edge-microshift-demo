@@ -48,9 +48,9 @@ spec:
           - name: VIDEO_PROCESSING_FPS
             value: "1"
           - name: CAP_PROP_FRAME_WIDTH
-            value: "800"
+            value: "400"
           - name: CAP_PROP_FRAME_HEIGHT
-            value: "600"
+            value: "300"
       volumes:
       - name: "model"
         emptyDir: {}

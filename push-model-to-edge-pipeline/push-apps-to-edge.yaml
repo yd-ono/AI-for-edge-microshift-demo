@@ -1,0 +1,68 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: push-apps-to-edge
+spec:
+  params:
+  - default: https://github.com/yd-ono/AI-for-edge-microshift-demo.git
+    name: git_repository_url
+    type: string
+  - default: default-registry.cluster.local/ai-for-edge/webapp
+    name: target_image_url
+    type: string
+    description: Image name w/o tag, MODEL_VERSION is used for the tag.
+  - default: v1.0
+    name: target_image_version
+    type: string
+    description: Image version.
+  tasks:
+  - name: git-clone
+    params:
+    - name: url
+      value: $(params.git_repository_url)
+    - name: revision
+      value: main
+    - name: submodules
+      value: "true"
+    - name: depth
+      value: "1"
+    - name: sslVerify
+      value: "true"
+    - name: deleteExisting
+      value: "true"
+    - name: verbose
+      value: "true"
+    taskRef:
+      kind: ClusterTask
+      name: git-clone
+    workspaces:
+    - name: output
+      workspace: init-container-build-space
+  - name: build-and-push-to-edge
+    params:
+    - name: IMAGE
+      value: $(params.target_image_url):$(params.target_image_version)
+    - name: BUILDER_IMAGE
+      value: registry.redhat.io/rhel8/buildah@sha256:23fb7971ea6ac4aaaaa1139473a602df0df19222a3b5a76b551b2b9ddd92e927
+    - name: STORAGE_DRIVER
+      value: vfs
+    - name: DOCKERFILE
+      value: /workspace/source/container-images/model-container/Containerfile
+    - name: CONTEXT
+      value: /workspace/source/container-images/model-container/
+    - name: TLSVERIFY
+      value: "false"
+    - name: FORMAT
+      value: oci
+    - name: BUILD_EXTRA_ARGS
+      value: --platform linux/amd64,linux/arm64/v8
+    runAfter:
+    - git-clone
+    taskRef:
+      kind: Task
+      name: buildah-with-dns
+    workspaces:
+    - name: source
+      workspace: init-container-build-space
+  workspaces:
+  - name: init-container-build-space

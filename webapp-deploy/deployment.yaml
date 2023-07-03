@@ -16,14 +16,14 @@ spec:
         deployment: webapp
     spec:
       initContainers:
-      - image: 10.42.0.16:8080/ai-for-edge/model:2307030930
+      - image: 10.42.0.16/ai-for-edge/model:2307030930
         imagePullPolicy: Always
         name: model
         volumeMounts:
         - name: model
           mountPath: /dst/
       containers:
-        - image: 10.42.0.16:8080/ai-for-edge/webapp:v1.0
+        - image: 10.42.0.16/ai-for-edge/webapp:v1.0
           imagePullPolicy: Always
           name: webapp
           ports:

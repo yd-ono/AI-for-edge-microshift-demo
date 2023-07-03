@@ -6,10 +6,10 @@ metadata:
 spec:
   destination:
     namespace: ai-for-edge
-    server: https://192.168.5.5:6443
+    server: https://192.168.3.11:6443
   project: default
   source:
     path: webapp-deploy
-    repoURL: https://github.com/rbo/AI-for-edge-microshift-demo
+    repoURL: https://github.com/yd-ono/AI-for-edge-microshift-demo
     targetRevision: main
   syncPolicy: {}

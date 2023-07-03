@@ -22,7 +22,7 @@
 |`model-training/`|ラップトップやJetsonで、ローカルモデルのトレーニングができる。 | No |
 |`tinyproxy-for-jetson/` | [NVIDIA Jetson用のプロキシサーバーを起動するプロキシイメージ]( tinyproxy-for-jetson/README.md ) | No |
 
-## Run the demo
+## デモの実行
 
 ### 1) Webappへのアクセス:
 
@@ -36,13 +36,13 @@ http://webapp-ai-for-edge.cluster.local/
 2. face-images`フォルダを開きます。トレーニングワークフローは、このフォルダ内の末尾が`.jpg`である各顔画像の埋め込みを作成します。ファイル名（末尾を除く）を対応する人物の名前として使用します。このフォルダに新しい顔画像をアップロードすることで、新しい顔認識モデルを学習し、それによってエッジアプリケーションが新しい顔を認識できるようになります。
 3. クローンしたリポジトリの `model-training-pipeline` フォルダ内の `training-workflow.ipynb` ノートブックを開きます。
 4. 左のツールバーにある `Object Storage Browser` JupyterLab 拡張を開く。S3のエンドポイントと認証情報を入力し、ログインします。models`バケットを含むS3バケットのリストが表示されます。models`バケットを開く。
-5. ノートブックのセルを上から下に実行する。
-6. Upload model to S3` セルを実行すると、オブジェクトストレージブラウザに新しいフォルダが表示されるはずです。その名前は、アップロードされたモデルのタイムスタンプ（バージョン）を示しています。そのフォルダの中に、パッケージ化されたモデルのバイナリである `model.data` というファイルがあるはずです。
+5. ノートブックのセルを上から下に順番に実行します。
+6. セルを実行すると、オブジェクトストレージブラウザに新しいフォルダが表示されるはずです。その名前は、アップロードされたモデルのタイムスタンプ（バージョン）を示しています。そのフォルダの中に、パッケージ化されたモデルのバイナリである `model.data` というファイルがあるはずです。
 
 これでMLの開発とトレーニングの段階は終了です。次のステップでは、学習済みのモデルをコンテナにパッケージして、ターゲットのエッジプラットフォームに出荷できるようにします。
 
 
-### 3) MLモデルをコンテナに入れ、パイプラインでエッジにプッシュ：
+### 3) MLモデルをコンテナに入れ、パイプラインでエッジデバイスへPush：
 
 https://console-openshift-console.apps-crc.testing/pipelines/ns/rhte-pipeline
 
@@ -83,7 +83,7 @@ $
 ![hardware-set-up](hardware-set-up.png)
 
 
-## Set Up
+## セットアップ
 
 デモは、エンドツーエンドのMLワークフローの環境を表す2つのOpenShiftインスタンス上にセットアップされています：
 - モデルのトレーニングとコンテナの構築のためのOpenShiftクラスタ（パブリッククラウドの中央データセンターにあるデータサイエンス環境）
@@ -117,44 +117,53 @@ S3ストレージインスタンスをセットアップしているか、既存
 
 ### Setting up OpenShift Local / OpenShift Single Node
 
-During the demo we using OpenShift Local running on the presenter laptop
-
-**Required:**
- * Running openshift local, follow the [officia documetation](https://developers.redhat.com/products/openshift-local/overview)
+ラップトップへOpenShift.localをインストールします。OpenShift.localのインストール方法は以下を参照してください。
+ * [officia documetation](https://developers.redhat.com/products/openshift-local/overview)
 
 
-Install OpenShift GitOps & OpenShift Pipelines via:
+OpenShift.localをインストールしたら、以下のマニフェストをapplyして、OpenShift PipelinesとOpenShift GitOpsをインストールします。
 ```bash
 oc apply -k openshift-local/
 ```
 
-Added cluster to argocd instance
+次に、OpenShift GitOps(ArgoCD)へエッジデバイスのKubernetesクラスタを追加します。
 
 ```bash
-# Login into MicroShift at Nvidia Jetson
-oc login -u kubeadmin https://192.168.5.5:6443/
+# MicroShiftのKubeconfigをローカルへコピー
+scp redhat@microshift.local:/var/lib/microshift/resources/kubeadmin/microshift.local ./
+vi microshift.local
+...
+    server: https://$MICROSHIFT_IP_ADDRESS:6443
+  name: microshift
+...
+export KUBECONFIG=/path/to/microshift.local
 
-# Login into OpenShift GitOps at OpenShift Local instance
-argocd login ...
+# OpenShift.localのOpenShift GitOpsへログイン
+PASSWORD=$(oc get secret -n openshift-gitops openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' | base64 -d)
+argocd login --username admin --password $PASSWORD openshift-gitops-server-openshift-gitops.apps-crc.testing --insecure
 
-# Add cluster to argocd instance
-argocd cluster add $(oc config current-context )
+# ArgoCDインスタンスへクラスタを追加
+argocd cluster add $(oc config current-context)
 ```
 
-Example outpur of `argocd cluster list`:
+`argocd cluster list`の実行結果例:
 ```bash
-$ argocd cluster list
-SERVER                          NAME        VERSION  STATUS      MESSAGE  PROJECT
-https://192.168.5.5:6443        jetson      1.21     Successful
-https://kubernetes.default.svc  in-cluster
+argocd cluster list
+SERVER                          NAME        VERSION  STATUS      MESSAGE                                                  PROJECT
+https://192.168.3.11:6443       microshift  1.26     Successful                                                           
+https://kubernetes.default.svc  in-cluster           Unknown     Cluster has no applications and is not being monitored. 
 ```
 
-Apply ArgoCD Application:
+```bash
+unset KUBECONFIG
+```
+
+ArgoCD Applicationをapplyします。
 ```bash
 oc apply -f openshift-local/ai-for-edge-webapp.application.yaml
 ```
 
-Apply `push-model-to-edge-pipeline` Pipeline:
+`push-model-to-edge-pipeline` Pipelineを作成します。
 ```bash
 # Create project/namespace
 oc new-project rhte-pipeline
@@ -195,7 +204,7 @@ podman run -ti --rm \
 
 ### Running MicroShift (jetson L4T)
 
-We assume that you have installed the standard L4T operating system specific to your Jetson board, and it is ready to install some packages (as root).
+以下の手順をrootユーザで実行します。
 
 ```
 apt install -y curl jq runc iptables conntrack nvidia-container-runtime nvidia-container-toolkit
@@ -299,8 +308,6 @@ openshift-ingress               router-default-85bcfdd948-tsk29       1/1     Ru
 openshift-service-ca            service-ca-7764c85869-dvdtm           1/1     Running   0          17h
 
 ```
-
-Now, we have our cloud-native platform ready to run workloads. Think about this: we have an edge computing optimized Kubernetes distribution ready to run an AI workload, and make use of the integrated GPU from the NVIDIA Jetson board. It's awesome!
 
 ### AI Web App
 

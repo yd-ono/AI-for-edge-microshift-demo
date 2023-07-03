@@ -7,7 +7,7 @@ spec:
   - default: https://github.com/yd-ono/AI-for-edge-microshift-demo.git
     name: git_repository_url
     type: string
-  - default: default-registry.apps.example.com/ai-for-edge/webapp
+  - default: default-registry.cluster.local/ai-for-edge/webapp
     name: target_image_url
     type: string
     description: Image name w/o tag, MODEL_VERSION is used for the tag.

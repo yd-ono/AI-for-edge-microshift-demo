@@ -60,7 +60,7 @@ spec:
     resources: {}
     script: |
 
-      echo "$MICROSHIFT_IP default-registry.apps.example.com" >> /etc/hosts
+      echo "$MICROSHIFT_IP default-registry.cluster.local" >> /etc/hosts
 
       buildah --storage-driver=$(params.STORAGE_DRIVER) bud \
         $(params.BUILD_EXTRA_ARGS) --format=$(params.FORMAT) \

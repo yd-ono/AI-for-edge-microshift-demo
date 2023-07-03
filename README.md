@@ -187,7 +187,7 @@ oc create secret generic aws-credentials --from-file=credentials=credentials
 ```
 
 
-### Running local proxy for the jetson
+###　ローカルプロキシをエッジデバイス上で実行する
 
 **Build**
 ```bash
@@ -210,20 +210,20 @@ podman run -ti --rm \
 apt install -y curl jq runc iptables conntrack nvidia-container-runtime nvidia-container-toolkit
 ```
 
-Disable firewalld:
+firewalldを無効化:
 
 ```
 systemctl disable --now firewalld
 ```
 
-Install CRI-O 1.21 as our container runtime:
+CRI-O 1.21をインストール:
 
 ```
 curl https://raw.githubusercontent.com/cri-o/cri-o/v1.21.7/scripts/get | bash
 
 ```
 
-Configure CRI-O in order to use the NVIDIA Container Runtime
+NVIDIA Container Runtimeを設定：
 
 
 ```
@@ -247,7 +247,7 @@ EOF
 rm -rf /etc/cni/net.d/10-crio-bridge.conf
 ```
 
-Download MicroShift binary:
+MicroShiftバイナリをインストール：
 
 ```
 export ARCH=arm64
@@ -256,7 +256,7 @@ export VERSION=4.8.0-0.microshift-2022-02-02-194009
 curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-${ARCH}
 mv microshift-linux-${ARCH} /usr/bin/microshift; chmod 755 /usr/bin/microshift
 ```
-Create the MicroShift's systemd service:
+MicroShiftのsystemd Serviceを作成：
 
 ```
 cat << EOF > /usr/lib/systemd/system/microshift.service
@@ -275,12 +275,14 @@ WantedBy=multi-user.target
 EOF
 ```
 
-Enable and run CRI-O and MicroShift services:
+CRI-OとMicroShiftを起動：
+
 ```
 systemctl enable crio --now
 systemctl enable microshift.service --now
 ```
-Download and install the oc client:
+
+CLIコマンド(`oc`)をインストール：
 
 ```
 curl -LO https://mirror.openshift.com/pub/openshift-v4/arm64/clients/ocp/stable-4.9/openshift-client-linux.tar.gz
@@ -289,13 +291,13 @@ chmod +x oc
 mv oc /usr/local/bin
 ```
 
-Set Kubeconfig environment variable:
+Kubeconfigを設定：
 
 ```
 export KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig
 ```
 
-If MicroShift is up and running, after a couple of minutes you should see the following pods:
+MicroShiftが正常起動したら、以下の結果となります。
 
 ```
 root@jetson-nx:~# oc get pod -A
@@ -311,16 +313,17 @@ openshift-service-ca            service-ca-7764c85869-dvdtm           1/1     Ru
 
 ### AI Web App
 
-The final step is to deploy the AI Web App that will perform face detection and face recognition. This pod is basically a Flask server that will get the streams of the cameras once they are connected, and start working on a discrete number of frames.
+最後のステップは、顔検出と顔認識を行うAIウェブアプリをデプロイするステップです。
+デプロイされるPodは基本的にFlaskサーバーで、カメラが接続されるとストリームを取得し、個別のフレーム数で処理を開始します。
 
-Let's deploy the AI models on MicroShift:
+MicroShift上にAIをデプロイしましょう。
 
 ```
 oc new-project ai-for-edge
 oc apply -f webapp.deploy.yaml
 ```
 
-After few seconds:
+数秒待つと・・・
 
 ```
 oc get pods
@@ -329,7 +332,7 @@ NAME                         READY   STATUS    RESTARTS   AGE
 webapp-67dd6b46fc-bqgbs   1/1     Running   2          2m33s
 ```
 
-Check the hostname of the route:
+Routeを確認します。
 
 ```
 $ oc get routes
@@ -337,9 +340,9 @@ NAME     HOST/PORT                          PATH   SERVICES   PORT       TERMINA
 webapp   webapp-ai-for-edge.cluster.local          webapp     5000-tcp                 None
 ```
 
-MicroShift has mDNS built-in capabilities, and this route will be automatically announced, so the cameras can register to this service, and start streaming video.
+MicroShiftにはmDNS機能が内蔵されており、このルートは自動的にアナウンスされるため、カメラはこのサービスに登録し、ビデオのストリーミングを開始することができます。
+カムサーバーのログを見ると、このような登録プロセスが見られます。
 
-Looking at the camserver logs, we can see this registration process:
 
 ```
 oc logs -f deployment/webapp -c webapp
@@ -356,19 +359,19 @@ Press CTRL+C to quit
 10.85.0.1 - - [30/Dec/2022 12:24:33] "GET /favicon.ico HTTP/1.1" 404 -
 ```
 
-Finally, open a browser with the following URL:
+ブラウザを開き、以下のURLへアクセスします：
 
 ```
 http://webapp-ai-for-edge.cluster.local
 ```
 
-This web will show you the feeds of the camera and you will be able to see how faces are detected.
+このウェブでは、カメラのフィードが表示され、顔がどのように検出されるかを見ることができる。
 
 ![Screenshot](screenshot.png)
 
 ## Configuration options
 
-|Environment variable|Description|Default|RHTE 2023 Settings|Lunch&Learn Munich
+|環境変数|概要|デフォルト|RHTE 2023設定|Lunch&Learn Munich
 |---|---|---|---|---|
 |`MODEL_FILENAME`|Model to load during startup.|`model.data`|via init container|Default|
 |`VIDEO_DEVICE_ID`|Video device to open:<br/>`cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)),cv2.CAP_V4L2)`|`0`|`0`|`0`|
@@ -381,7 +384,15 @@ This web will show you the feeds of the camera and you will be able to see how f
 |`WEB_LOGLEVEL`|Loglevel for the webapp: `CRITICAL`, `ERROR`, `WARNING`,`INFO` or `DEBUG`|`INFO`|`INFO`|`INFO`|
 *) Because the setting was not available at RHTE 2023
 
-# WebApp development at the jetson
+# JetsonでのWebappの開発
+## Base Imageの作成
+
+```bash
+cd container-images/cpu-only
+./build-and-push.sh 
+```
+
+Tekton Pipelineでは、このBase Imageを使用して、Webアプリのコンテナイメージを作成します。
 
 ```bash
 
@@ -421,16 +432,16 @@ Press CTRL+C to quit
 
 ```
 
-## Check different versions & GPU support
+## 異なるバージョンとGPUサポートをチェック
 
-|Component|Command|
+|コンポーネント|コマンド|
 |---|---|
 | nvidia-l4t-core | `dpkg-query --showformat='${Version}' --show nvidia-l4t-core` |
 | OpenCV | ` python3 -c 'import cv2;print(cv2.getBuildInformation())' |grep cuda ` |
 | dlib | `python3 -c 'import dlib; print(dlib.DLIB_USE_CUDA);print(dlib.cuda.get_num_devices())'` |
 | CUDA | `/usr/local/cuda/bin/nvcc --version` |
 
-## Some usefull links/resources:
+## 参考情報
 * <https://docs.opencv.org/4.x/d2/de6/tutorial_py_setup_in_ubuntu.html>
 * <https://developer.ridgerun.com/wiki/index.php/How_to_Capture_Frames_from_Camera_with_OpenCV_in_Python>
 * <https://forums.developer.nvidia.com/t/issues-with-dlib-library/72600>
@@ -443,8 +454,8 @@ Press CTRL+C to quit
 * <https://community.theta360.guide/t/ricoh-theta-v-livestreaming-with-jetson-xavier-ros-opencv-nuc/7105/32>
 * <https://github.com/mmaaz60/SkipVideoFramesUsingOpenCV>
 
-## Conclusion
+## まとめ
 
-This demo is just a simple use case of what an edge computing scenario would look like. Running AI/ML models on top of an embedded system like the Nvidia Jetson family, and leveraging cloud-native capabilities with MicroShift.
+このデモは、エッジコンピューティングのシナリオがどのようなものかを示す簡単なユースケースです。Nvidia Jetsonファミリーのような組み込みシステムの上でAI/MLモデルを実行し、MicroShiftでクラウドネイティブ機能を活用します。
 
-We hope you enjoy it!
+どうぞお楽しみください！

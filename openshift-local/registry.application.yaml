@@ -1,11 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ai-for-edge-webapp
+  name: registry-edge
   namespace: openshift-gitops
 spec:
   destination:
-    namespace: ai-for-edge
+    namespace: registry
     server: https://$MICROSHIFT_IP:6443
   project: default
   source:

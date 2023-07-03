@@ -6,16 +6,16 @@ spec:
   params:
   - name: MODEL_VERSION
     type: string
-    default: "2301251401"
+    default: "2307011528"
   - name: BUCKET_NAME
     type: string
-    default: "models-487822c0-6b35-4c08-9ffc-a34eebb7ea55"
+    default: "demo-l8r74-image-registry-ap-northeast-1-mnhkphndkgdpcmkhxnktv"
 
-  - default: https://s3-openshift-storage.apps.cluster.coe.muc.redhat.com
+  - default: https://s3.amazonaws.com/
     name: S3_ENDPOINT_URL
     type: string
 
-  - default: https://github.com/rbo/AI-for-edge-microshift-demo.git
+  - default: https://github.com/yd-ono/AI-for-edge-microshift-demo.git
     name: git_repository_url
     type: string
 
@@ -40,8 +40,6 @@ spec:
       value: "true"
     - name: verbose
       value: "true"
-    - name: gitInitImage
-      value: registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:55b0686bbd045c9c77820686318f8a5ff2aff06de566b067f408d27a93bf153c
     taskRef:
       kind: ClusterTask
       name: git-clone

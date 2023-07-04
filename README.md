@@ -1,10 +1,9 @@
 # AI at the Edge with MicroShift
 
-このリポジトリには、[Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)のワークと、Max MurakamiとRobert Bohneがプレゼン「[Red Hat Device Edge (MicroShift) & Nvidiaによるエッジでの画像認識](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)」のために開発されたコードが含まれています。
+本デモは、エッジコンピューティングのシナリオで、MicroShiftを使用して、クラウドネイティブなアプローチによる顔検出と顔認識AIをエッジデバイス上で実行します。
+本デモでテスト済みのエッジデバイスは、[IntelNUC](https://www.intel.co.jp/content/www/jp/ja/products/details/nuc.html)と、[NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)ファミリー、VirtualBox上の仮想マシンをエッジデバイスとして擬似的に利用しても動作します。
 
-本デモの最終目標は、エッジコンピューティングのシナリオで、MicroShiftを使用して、クラウドネイティブなアプローチによる顔検出と顔認識AIをエッジデバイス上で実行することです。
-本デモでテスト済みのエッジデバイスは、[ IntelNUC]()と、[NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)ファミリーのです。
-
+> なお、本デモは、[Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)のコードと、Max MurakamiとRobert Bohneがプレゼン「[Red Hat Device Edge (MicroShift) & Nvidiaによるエッジでの画像認識](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)」のコードをベースにしています。
 
 ![Overview](overview.png)
 
@@ -12,7 +11,7 @@
 
 |コンポーネント/フォルダ|概要|デモでの必要性|
 |---|---|---|
-|`openshift-local/`|[OpenShift Single NodeまたはOpenShift Local環境をブートストラップするためのすべての情報。基本的なOpenShift GitOpsとOpenShift Pipelinesのデプロイと設定。](crc-bootstrap/README.md)| Yes |
+|`openshift-local/`|[ラップトップにインストールしたOpenShift Single NodeまたはOpenShift.localへデプロイする、OpenShift PipelinesおよびOpenShift GitOpsのマニフェストが格納されています。](crc-bootstrap/README.md)| Yes |
 |`model-training-pipeline` |  顔画像に基づく顔認識モデルの学習に必要なステップを含むJupyterノートブック。 | Yes |
 |`local-registry-deploy/`|NVIDIA Jetsonで展開されるエッジのレジストリ| Yes |
 |`webapp/`| カメラからのビデオストリームを受信し、顔検出と認識を実行するFlaskサーバ。https://quay.io/rbohne/ai-for-edge-microshift-demo:webapp | Yes |
@@ -29,7 +28,6 @@
 
 http://webapp-ai-for-edge.cluster.local/
 
-=> Nothing recognitced
 
 ### 2) モデルの(再)学習
 
@@ -465,5 +463,3 @@ Press CTRL+C to quit
 ## まとめ
 
 このデモは、エッジコンピューティングのシナリオがどのようなものかを示す簡単なユースケースです。Nvidia Jetsonファミリーのような組み込みシステムの上でAI/MLモデルを実行し、MicroShiftでクラウドネイティブ機能を活用します。
-
-どうぞお楽しみください！

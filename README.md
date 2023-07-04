@@ -194,7 +194,7 @@ cat push-model-to-edge-pipeline/buildah-with-dns.task.yaml | envsubst | oc apply
 # You may want to adjust the defaults of S3_ENDPOINT_URL, BUCKET_NAME,
 #      git_repository_url.. first
 oc apply -f push-model-to-edge-pipeline/push-model-to-edge.pipeline.yaml
-
+oc apply -f push-model-to-edge-pipeline/push-apps-to-edge.pipeline.yaml
 # Add S3 bucket access
 
 export AWS_ACCESS_KEY=...

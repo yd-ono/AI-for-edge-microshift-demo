@@ -148,7 +148,8 @@ oc apply -k openshift-local/
 ```bash
 # OpenShift.localのOpenShift GitOpsへadmin権限でログイン
 PASSWORD=$(oc get secret -n openshift-gitops openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' | base64 -d)
-argocd login --username admin --password $PASSWORD openshift-gitops-server-openshift-gitops.apps-crc.testing --insecure
+GITOPS_SERVER=$(oc get route -n openshift-gitops openshift-gitops-server -ojsonpath='{.status.ingress[*].host}')
+argocd login --username admin --password $PASSWORD $GITOPS_SERVER --insecure
 ```
 
 ##### MicroShiftのKubeconfigの取得
@@ -177,7 +178,7 @@ argocd cluster add $(oc config current-context)
 ```bash
 argocd cluster list
 SERVER                          NAME        VERSION  STATUS      MESSAGE                                                  PROJECT
-https://$MICROSHIFT_IP:6443       microshift  1.26     Successful                                                           
+https://xx.xx.xx.xx:6443       microshift  1.26     Successful                                                           
 https://kubernetes.default.svc  in-cluster           Unknown     Cluster has no applications and is not being monitored. 
 ```
 
@@ -210,7 +211,7 @@ cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f
 
 MicroShiftの`/etc/hosts`へローカルレジストリのURLを追記します。
 ```bash
-echo "$MICROSHIFT_IP default-registry.cluster.local" >> /etc/hosts
+echo "xx.xx.xx.xx default-registry.cluster.local" >> /etc/hosts
 ```
 
 そして、`/etc/crio/crio.conf`へ作成したローカルレジストリを`insecure registry`として追記します。
@@ -279,7 +280,7 @@ URLは、`nginx-rtmp`のNodePortへ以下の通り設定してください。
 
 URL
 ```
-rtmp://$MICROSHIFT_IP:<NodePort>/live
+rtmp://xx.xx.xx.xx:<NodePort>/live
 ```
 
 ストリーミングキー

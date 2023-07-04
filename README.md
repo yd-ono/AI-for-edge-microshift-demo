@@ -1,13 +1,14 @@
 # AI at the Edge with MicroShift
 
-このリポジトリには、[Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)の素晴らしい仕事に基づいてMax MurakamiとRobert Bohneが開発した講演「[Red Hat Device Edge (MicroShift) & Nvidiaによるエッジでの画像認識](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)」のために開発されたコードが含まれています。
+このリポジトリには、[Miguel Angel Ajo and Ricardo Noriega](https://github.com/redhat-et/AI-for-edge-microshift-demo)のワークと、Max MurakamiとRobert Bohneがプレゼン「[Red Hat Device Edge (MicroShift) & Nvidiaによるエッジでの画像認識](https://docs.google.com/presentation/d/1TlnF5NKe7rwOLOIEkOpbbwJpmtJdjL5uYJUUUCsdH0k)」のために開発されたコードが含まれています。
 
-このデモの最終目標は、エッジ・コンピューティング・シナリオでMicroShiftを使用して、クラウドネイティブな方法で顔検出と顔認識AIモデルを実行することです。そのために、[NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)ファミリーのボード（Jetson Xavier NXでテスト）を使用しました。
+本デモの最終目標は、エッジコンピューティングのシナリオで、MicroShiftを使用して、クラウドネイティブなアプローチによる顔検出と顔認識AIをエッジデバイス上で実行することです。
+本デモでテスト済みのエッジデバイスは、[ IntelNUC]()と、[NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)ファミリーのです。
 
 
 ![Overview](overview.png)
 
-このデモリポジトリは、さまざまなフォルダ/コンテンツで構成されています：
+リポジトリには、以下のコンテンツが含まれます。
 
 |コンポーネント/フォルダ|概要|デモでの必要性|
 |---|---|---|
@@ -129,18 +130,19 @@ oc apply -k openshift-local/
 次に、OpenShift GitOps(ArgoCD)へエッジデバイスのKubernetesクラスタを追加します。
 
 ```bash
-# MicroShiftのKubeconfigをローカルへコピー
-scp redhat@microshift.local:/var/lib/microshift/resources/kubeadmin/microshift.local ./
-vi microshift.local
-...
-    server: https://$MICROSHIFT_IP_ADDRESS:6443
-  name: microshift
-...
-export KUBECONFIG=/path/to/microshift.local
-
 # OpenShift.localのOpenShift GitOpsへログイン
 PASSWORD=$(oc get secret -n openshift-gitops openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' | base64 -d)
 argocd login --username admin --password $PASSWORD openshift-gitops-server-openshift-gitops.apps-crc.testing --insecure
+
+# MicroShiftのKubeconfigをローカルへコピー
+scp redhat@microshift.local:/var/lib/microshift/resources/kubeadmin/microshift.local ./
+export MICROSHIFT_IP=xx.xx.xx.xx
+vi microshift.local
+...
+    server: https://xx.xx.xx.xx:6443
+  name: microshift
+...
+export KUBECONFIG=/path/to/microshift.local
 
 # ArgoCDインスタンスへクラスタを追加
 argocd cluster add $(oc config current-context)
@@ -160,8 +162,12 @@ unset KUBECONFIG
 
 ArgoCD Applicationをapplyします。
 ```bash
-cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f -
+unset KUBECONFIG
 cat openshift-local/registry.application.yaml | envsubst | oc apply -f -
+```
+
+```bash
+cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f -
 ```
 
 MicroShiftの`/etc/hosts`へローカルレジストリのURLを追記します。
@@ -203,21 +209,6 @@ EOF
 oc create secret generic aws-credentials --from-file=credentials=credentials
 ```
 
-
-###　ローカルプロキシをエッジデバイス上で実行する
-
-**Build**
-```bash
-cd tinyproxy-for-jetson/
-podman build -t proxy:latest .
-```
-
-**Run**
-```bash
-podman run -ti --rm \
-    -p 192.168.5.1:8080:8080 \
-    --name proxy proxy:latest
-```
 
 ### Running MicroShift (jetson L4T)
 

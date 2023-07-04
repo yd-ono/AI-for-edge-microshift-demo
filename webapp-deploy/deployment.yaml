@@ -44,7 +44,7 @@ spec:
           - name: "FACE_RATIO"
             value: "1"
           - name:  WEB_LOGLEVEL
-            value: "INFO"
+            value: "DEBUG"
           - name: VIDEO_PROCESSING_FPS
             value: "1"
           - name: CAP_PROP_FRAME_WIDTH

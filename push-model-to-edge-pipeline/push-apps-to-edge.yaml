@@ -15,6 +15,10 @@ spec:
     name: target_image_version
     type: string
     description: Image version.
+  - default: webapp
+    name: target_apps
+    type: string
+    description: Image version.
   tasks:
   - name: git-clone
     params:
@@ -47,9 +51,9 @@ spec:
     - name: STORAGE_DRIVER
       value: vfs
     - name: DOCKERFILE
-      value: /workspace/source/webapp/Containerfile.cpu-only
+      value: /workspace/source/$(params.target_apps)/Containerfile.cpu-only
     - name: CONTEXT
-      value: /workspace/source/webapp/
+      value: /workspace/source/$(params.target_apps)/
     - name: TLSVERIFY
       value: "false"
     - name: FORMAT

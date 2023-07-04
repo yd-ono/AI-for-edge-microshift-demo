@@ -110,7 +110,7 @@ spec:
     - name: FORMAT
       value: oci
     - name: BUILD_EXTRA_ARGS
-      value: --platform linux/amd64,linux/arm64/v8
+      value: --platform linux/amd64
     runAfter:
     - download-model
     taskRef:

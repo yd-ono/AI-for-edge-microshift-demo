@@ -24,7 +24,7 @@ spec:
         app: nginx-rtmp
     spec:
       containers:
-      - image: localhost/nginx-rtmp:v1
+      - image: default-registry.cluster.local/ai-for-edge/nginx-rtmp:v1.0
         imagePullPolicy: IfNotPresent
         name: nginx-rtmp
         volumeMounts:

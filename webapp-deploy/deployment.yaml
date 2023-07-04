@@ -46,7 +46,7 @@ spec:
           - name:  WEB_LOGLEVEL
             value: "DEBUG"
           - name: VIDEO_PROCESSING_FPS
-            value: "30"
+            value: "60"
           - name: CAP_PROP_FRAME_WIDTH
             value: "800"
           - name: CAP_PROP_FRAME_HEIGHT

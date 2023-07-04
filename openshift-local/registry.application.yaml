@@ -12,4 +12,7 @@ spec:
     path: local-registry-deploy
     repoURL: https://github.com/yd-ono/AI-for-edge-microshift-demo
     targetRevision: main
-  syncPolicy: {}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

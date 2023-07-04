@@ -46,11 +46,11 @@ spec:
           - name:  WEB_LOGLEVEL
             value: "DEBUG"
           - name: VIDEO_PROCESSING_FPS
-            value: "60"
+            value: "1"
           - name: CAP_PROP_FRAME_WIDTH
-            value: "800"
+            value: "1280"
           - name: CAP_PROP_FRAME_HEIGHT
-            value: "600"
+            value: "720"
       volumes:
       - name: "model"
         emptyDir: {}

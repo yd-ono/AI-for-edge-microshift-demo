@@ -14,11 +14,11 @@
 |`openshift-local/`|[ラップトップにインストールしたOpenShift Single NodeまたはOpenShift.localへデプロイする、OpenShift PipelinesおよびOpenShift GitOpsのマニフェスト](crc-bootstrap/README.md)| Yes |
 |`model-training-pipeline` |顔画像に基づく顔認識モデルの学習に必要なステップを含むJupyterノートブック| Yes |
 |`local-registry-deploy/`|NVIDIA Jetsonで展開されるコンテナレジストリ(Docker Registry)のマニフェスト| Yes |
-|`webapp/`| RTMPでカメラからのビデオストリームを受信し、顔認識を実行するFlaskサーバ　https://quay.io/yono/ai-for-edge-microshift-demo:webapp | Yes |
-|`webapp-deploy/` | Webappのマニフェスト | Yes |
-|`container-images/cpu-only/`|　WebappのCPU環境用のコンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:cpu-only | No |
-|`container-images/l4t-cuda-dlib/`| WebappのCUDA/GPU対応のコンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:l4t-cuda-dlib | No |
-|`container-images/model-container/`| 学習モデルの初期化とデータストアへの格納を行う小ンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:model |No |
+|`webapp/`|RTMPでカメラからのビデオストリームを受信し、顔認識を実行するFlaskサーバ　https://quay.io/yono/ai-for-edge-microshift-demo:webapp | Yes |
+|`webapp-deploy/` |Webappのマニフェスト | Yes |
+|`container-images/cpu-only/`|WebappのCPU環境用のコンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:cpu-only | No |
+|`container-images/l4t-cuda-dlib/`|WebappのCUDA/GPU対応のコンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:l4t-cuda-dlib | No |
+|`container-images/model-container/`|学習モデルの初期化とデータストアへの格納を行う小ンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:model |No |
 |`model-training/`|ラップトップやJetsonなどのローカル環境でモデル学習を行う検証用アプリ | No |
 
 ## デモの流れ

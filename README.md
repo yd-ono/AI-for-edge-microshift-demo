@@ -11,43 +11,48 @@
 
 |コンポーネント/フォルダ|概要|デモでの必要性|
 |---|---|---|
-|`openshift-local/`|[ラップトップにインストールしたOpenShift Single NodeまたはOpenShift.localへデプロイする、OpenShift PipelinesおよびOpenShift GitOpsのマニフェストが格納されています。](crc-bootstrap/README.md)| Yes |
-|`model-training-pipeline` |  顔画像に基づく顔認識モデルの学習に必要なステップを含むJupyterノートブック。 | Yes |
-|`local-registry-deploy/`|NVIDIA Jetsonで展開されるエッジのレジストリ| Yes |
-|`webapp/`| カメラからのビデオストリームを受信し、顔検出と認識を実行するFlaskサーバ。https://quay.io/rbohne/ai-for-edge-microshift-demo:webapp | Yes |
-|`webapp-deploy/` | Deployment of webapp via GitOps model. | Yes |
-|`container-images/cpu-only/`|Pythonウェブアプリケーション用のCPUのみのベースイメージ。https://quay.io/rbohne/ai-for-edge-microshift-demo:cpu-only | No |
-|`container-images/l4t-cuda-dlib/`|CUDA/GPU 対応の Python Web アプリケーション用ベースイメージ。https://quay.io/rbohne/ai-for-edge-microshift-demo:l4t-cuda-dlib から入手可能。 | No |
-|`container-images/model-container/`|モデルのコンテナとデータストアを初期化する。デモ中にビルドする。サンプルはこちら: https://quay.io/rbohne/ai-for-edge-microshift-demo:model |No |
-|`model-training/`|ラップトップやJetsonで、ローカルモデルのトレーニングができる。 | No |
-|`tinyproxy-for-jetson/` | [NVIDIA Jetson用のプロキシサーバーを起動するプロキシイメージ]( tinyproxy-for-jetson/README.md ) | No |
+|`openshift-local/`|[ラップトップにインストールしたOpenShift Single NodeまたはOpenShift.localへデプロイする、OpenShift PipelinesおよびOpenShift GitOpsのマニフェスト](crc-bootstrap/README.md)| Yes |
+|`model-training-pipeline` |顔画像に基づく顔認識モデルの学習に必要なステップを含むJupyterノートブック| Yes |
+|`local-registry-deploy/`|NVIDIA Jetsonで展開されるコンテナレジストリ(Docker Registry)のマニフェスト| Yes |
+|`webapp/`| RTMPでカメラからのビデオストリームを受信し、顔認識を実行するFlaskサーバ　https://quay.io/yono/ai-for-edge-microshift-demo:webapp | Yes |
+|`webapp-deploy/` | Webappのマニフェスト | Yes |
+|`container-images/cpu-only/`|　WebappのCPU環境用のコンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:cpu-only | No |
+|`container-images/l4t-cuda-dlib/`| WebappのCUDA/GPU対応のコンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:l4t-cuda-dlib | No |
+|`container-images/model-container/`| 学習モデルの初期化とデータストアへの格納を行う小ンテナベースイメージ https://quay.io/yono/ai-for-edge-microshift-demo:model |No |
+|`model-training/`|ラップトップやJetsonなどのローカル環境でモデル学習を行う検証用アプリ | No |
 
-## デモの実行
+## デモの流れ
 
-### 1) Webappへのアクセス:
+Webappが起動した状態で以下を実行します。
+
+### 1) Webappへのアクセス
 
 http://webapp-ai-for-edge.cluster.local/
 
+> MicroShiftはmDNSが組み込まれてるため、上記のURLでアクセスできるはずです。
 
 ### 2) モデルの(再)学習
 
-1. RHODSダッシュボードで、データサイエンスプロジェクトの`model training`ワークベンチを開きます。
-2. face-images`フォルダを開きます。トレーニングワークフローは、このフォルダ内の末尾が`.jpg`である各顔画像の埋め込みを作成します。ファイル名（末尾を除く）を対応する人物の名前として使用します。このフォルダに新しい顔画像をアップロードすることで、新しい顔認識モデルを学習し、それによってエッジアプリケーションが新しい顔を認識できるようになります。
-3. クローンしたリポジトリの `model-training-pipeline` フォルダ内の `training-workflow.ipynb` ノートブックを開きます。
-4. 左のツールバーにある `Object Storage Browser` JupyterLab 拡張を開く。S3のエンドポイントと認証情報を入力し、ログインします。models`バケットを含むS3バケットのリストが表示されます。models`バケットを開く。
+1. RHODSのダッシュボードで、`model training`ワークベンチを開きます。
+2. `face-images`フォルダを開きます。このフォルダへ`.jpg`形式の顔画像を格納します。ファイル名は対応する人物名としてください。
+3. `model-training-pipeline` フォルダ内の `training-workflow.ipynb` ノートブックを開きます。
+4. 左のツールバーにある `Object Storage Browser`にてJupyter notebookを開きます。S3のエンドポイントと認証情報を入力し、ログインすると、学習モデルを格納するバケットを含むS3バケットのリストが表示されます。
 5. ノートブックのセルを上から下に順番に実行します。
-6. セルを実行すると、オブジェクトストレージブラウザに新しいフォルダが表示されるはずです。その名前は、アップロードされたモデルのタイムスタンプ（バージョン）を示しています。そのフォルダの中に、パッケージ化されたモデルのバイナリである `model.data` というファイルがあるはずです。
+6. セルを実行すると、オブジェクトストレージブラウザに新しいフォルダが表示されるはずです。その名前は、アップロードされたモデルのタイムスタンプ（バージョン）を示しています。そのフォルダの中に、パッケージ化されたモデルのバイナリである `model.data` というファイルが格納されます。
 
-これでMLの開発とトレーニングの段階は終了です。次のステップでは、学習済みのモデルをコンテナにパッケージして、ターゲットのエッジプラットフォームに出荷できるようにします。
+これで追加された顔画像の学習は完了です。
+次のステップでは、学習済みのモデルをコンテナにパッケージして、ターゲットのエッジプラットフォームに出荷できるようにします。
 
-
-### 3) MLモデルをコンテナに入れ、パイプラインでエッジデバイスへPush：
+### 3) MLモデルをコンテナに入れ、パイプラインでエッジデバイスへPush
 
 https://console-openshift-console.apps-crc.testing/pipelines/ns/rhte-pipeline
 
 ### 4) `webapp-deploy/deployment.yaml`をアップデート
 
-Example diff:
+マニフェストの`image`を再学習したモデルバージョンへ差し替えます。
+ローカルでマニフェストを修正し、Gitリポジトリへpushします。
+
+diffの例:
 ```diff
 $ git diff webapp-deploy/deployment.yaml
 diff --git a/webapp-deploy/deployment.yaml b/webapp-deploy/deployment.yaml
@@ -67,35 +72,46 @@ $
 ```
 
 ### 5) OpenShift GitOpsでロールアウト
-    https://openshift-gitops-server-openshift-gitops.apps-crc.testing/applications/openshift-gitops/ai-for-edge-webapp?view=tree&resource=
+ArgoCDがGitリポジトリとSyncして、エッジデバイスへWebappのdeloymentを差し替えます。
+(デフォルトはAuto Syncにしています)
+
+https://openshift-gitops-server-openshift-gitops.apps-crc.testing/applications/openshift-gitops/ai-for-edge-webapp?view=tree&resource=
 
 ### 6) WebAppを再び表示し、今度は緑のボックスで表示
 
-### 7) オプション： tegrastats経由でGPUの統計情報を表示する
+http://webapp-ai-for-edge.cluster.local/
 
-### Video of the Demo:
+### デモ動画
 
 [![AI for edge deom video](https://img.youtube.com/vi/8dHpNAPSgZ0/0.jpg)](https://www.youtube.com/watch?v=8dHpNAPSgZ0 "AI for edge deom video")
 
-## Hardware Set Up
+## ハードウェア環境のセットアップ
 
 ![hardware-set-up](hardware-set-up.png)
 
 
-## セットアップ
+## デモ環境のセットアップ
 
-デモは、エンドツーエンドのMLワークフローの環境を表す2つのOpenShiftインスタンス上にセットアップされています：
-- モデルのトレーニングとコンテナの構築のためのOpenShiftクラスタ（パブリッククラウドの中央データセンターにあるデータサイエンス環境）
-- エッジロケーションのデバイスにデプロイされたMicroShiftインスタンス。AIウェブアプリをホストし、入力されたビデオストリームを処理し、カプセル化された顔認識モデルに基づいて顔認識を実行する。
+デモは、3つのOpenShift環境で構成されます。
 
+- MLモデルの学習を行うためのOpenShiftクラスタ（パブリッククラウドの中央データセンタにあるデータサイエンス環境）
+- エッジデバイスにインストールされたMicroShift
+- ラップトップ等にインストールされたSingle Node OpenShiftまたはOpenShift.local(エッジデバイスと同一セグメントに接続します)
 
-### 中央のOCPクラスタにモデルのトレーニングとパッケージングをセットアップする
+### MLモデルの学習環境のセットアップ
 
-S3ストレージインスタンスをセットアップしているか、既存のS3ストレージインスタンスに書き込み権限を持っていると仮定する。
+#### 前提条件
+S3インタフェースが利用できるオブジェクトストレージと、アクセスキー、シークレットアクセスキー、モデル格納用のバケットを準備します。
 
+#### OpenShift Data Scienceのセットアップ
 1. Operator Hubから`Red Hat OpenShift Data Science` operatorをインストール
 2. Operator Hubから`Red Hat OpenShift Pipelines` operator (1.7 or 1.8) をインストール
 3. [manifests/face-recognition-notebook.yaml](manifests/face-recognition-notebook.yaml)を`redhat-ods-applications` namespaceへデプロイ
+
+```bash
+oc apply -f manifests/face-recognition-notebook.yaml
+```
+
 4. RHODSのダッシュボードを開く (ツールバー上に追加された`Red Hat OpenShift Data Science` メニューで開けます).
 5. `Data Science Projects`タブにて, `Create data science project`を選択します.そして、 名前へ`demo-project`を入力し、`Create`を押下します。
 6. `Create workbench`を選択し、以下を入力
@@ -105,48 +121,59 @@ S3ストレージインスタンスをセットアップしているか、既存
 7. S3ストレージ内で, `models`と言う名前のバケットを作成します。
 8. RHODS ダッシュボードにて, `Add data connection`を選択し、以下を入力します。
     - Name: `models`
-    - AWS_ACCESS_KEY: your S3 access key
-    - AWS_SECRET_ACCESS_KEY: your S3 secret key
-    - AWS_S3_ENDPOINT: your S3 endpoint URL
-    - AWS_S3_BUCKET: `models`
+    - AWS_ACCESS_KEY: <your S3 access key>
+    - AWS_SECRET_ACCESS_KEY: <your S3 secret key>
+    - AWS_S3_ENDPOINT: <your S3 endpoint URL>
+    - AWS_S3_BUCKET: <your S3 Bucket name>
     - Connected workbench: `model training`
-    - Select `Add data connection`
-9. `model training` workbenchの状態を確認します。状態が`Running`となったら、`Open`を選択してください。
+    - `Add data connection`選択します
+9.  `model training` workbenchの状態を確認します。状態が`Running`となったら、`Open`を選択してください。
 10. workbenchを開き、左側のツールバーから、`Git client`を選択します。そして、`Clone a Repository`を選択し、GitリポジトリのURLを指定して、`Clone`を選択してください。
 
-### Setting up OpenShift Local / OpenShift Single Node
+### OpenShift Local / OpenShift Single Nodeのセットアップ
 
 ラップトップへOpenShift.localをインストールします。OpenShift.localのインストール方法は以下を参照してください。
+
  * [officia documetation](https://developers.redhat.com/products/openshift-local/overview)
 
 
-OpenShift.localをインストールしたら、以下のマニフェストをapplyして、OpenShift PipelinesとOpenShift GitOpsをインストールします。
+#### OpenShift PipelinesとOpenShift GitOpsのインストール
 ```bash
 oc apply -k openshift-local/
 ```
 
-次に、OpenShift GitOps(ArgoCD)へエッジデバイスのKubernetesクラスタを追加します。
+#### OpenShift GitOpsの準備
 
+##### ArgoCDへログイン
 ```bash
-# OpenShift.localのOpenShift GitOpsへログイン
+# OpenShift.localのOpenShift GitOpsへadmin権限でログイン
 PASSWORD=$(oc get secret -n openshift-gitops openshift-gitops-cluster -o jsonpath='{.data.admin\.password}' | base64 -d)
 argocd login --username admin --password $PASSWORD openshift-gitops-server-openshift-gitops.apps-crc.testing --insecure
+```
 
+##### MicroShiftのKubeconfigの取得
+```bash
 # MicroShiftのKubeconfigをローカルへコピー
 scp redhat@microshift.local:/var/lib/microshift/resources/kubeadmin/microshift.local ./
-export MICROSHIFT_IP=xx.xx.xx.xx
+
+# server: https://microshift.local:6443 のホスト名をIPアドレスへ修正
 vi microshift.local
 ...
     server: https://xx.xx.xx.xx:6443
   name: microshift
 ...
-export KUBECONFIG=/path/to/microshift.local
 
-# ArgoCDインスタンスへクラスタを追加
+# MicroShiftのIPアドレスとKubeconfigのパスを環境変数へ定義
+export MICROSHIFT_IP=xx.xx.xx.xx
+export KUBECONFIG=microshift.local
+```
+
+##### ArgoCDへMicroShiftクラスタを追加
+```bash
 argocd cluster add $(oc config current-context)
 ```
 
-`argocd cluster list`の実行結果例:
+`argocd cluster list`を実行し、クラスタの登録状況を確認します。
 ```bash
 argocd cluster list
 SERVER                          NAME        VERSION  STATUS      MESSAGE                                                  PROJECT
@@ -154,47 +181,77 @@ https://$MICROSHIFT_IP:6443       microshift  1.26     Successful
 https://kubernetes.default.svc  in-cluster           Unknown     Cluster has no applications and is not being monitored. 
 ```
 
+##### ArgoCD Applicationの作成
+一度MicroShiftのKubeconfigのパスが格納された環境変数を削除します。
+
 ```bash
 unset KUBECONFIG
 ```
 
 ArgoCD Applicationをapplyします。
+
+コンテナレジストリのデプロイ
 ```bash
 unset KUBECONFIG
 cat openshift-local/registry.application.yaml | envsubst | oc apply -f -
 ```
 
+nginx-rtmpのデプロイ
+```bash
+cat openshift-local/nginx-rtmp.application.yaml | envsubst | oc apply -f -
+```
+
+Webappのデプロイ
 ```bash
 cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f -
 ```
+
+##### エッジデバイス上で実行されるCRI-Oがローカルのコンテナレジストリへアクセスできるようにする
 
 MicroShiftの`/etc/hosts`へローカルレジストリのURLを追記します。
 ```bash
 echo "$MICROSHIFT_IP default-registry.cluster.local" >> /etc/hosts
 ```
 
-そして、`/etc/crio.conf`へ作成したローカルレジストリを`insecure registry`として追記します。
+そして、`/etc/crio/crio.conf`へ作成したローカルレジストリを`insecure registry`として追記します。
 ```bash
 sudo su
 cat /etc/crio/crio.conf
 ...
 insecure_registries=["default-registry.cluster.local"]
 ...
+```
 
+
+CRI-Oを再起動します。
+```bash
 systemctl restart crio
 ```
 
-`push-model-to-edge-pipeline` Pipelineを作成します。
+#### OpenShift Pipelinesの準備
+
+##### `push-model-to-edge-pipeline` Pipelineを作成
+
 ```bash
-# Create project/namespace
+unset KUBECONFIG
+
+# namespaceを作成
 oc new-project rhte-pipeline
+```
+
+##### Tekton Taskを追加
+```bash
 cat push-model-to-edge-pipeline/buildah-with-dns.task.yaml | envsubst | oc apply -f -
-# You may want to adjust the defaults of S3_ENDPOINT_URL, BUCKET_NAME,
-#      git_repository_url.. first
+```
+
+##### MLモデルコンテナとWebappコンテナビルド用のパイプラインを作成
+```bash
 oc apply -f push-model-to-edge-pipeline/push-model-to-edge.pipeline.yaml
 oc apply -f push-model-to-edge-pipeline/push-apps-to-edge.pipeline.yaml
-# Add S3 bucket access
+```
 
+##### S3の認証情報を追加
+```bash
 export AWS_ACCESS_KEY=...
 export AWS_SECRET_ACCESS_KEY=...
 
@@ -208,187 +265,44 @@ oc create secret generic aws-credentials --from-file=credentials=credentials
 ```
 
 
-### Running MicroShift (jetson L4T)
+#### MicroShiftのインストール
 
-以下の手順をrootユーザで実行します。
+NVIDIA JetsonへのMicroShiftのインストール方法は、以下のサイトを参照してください。
 
+https://gitlab.com/yono1/microshift-orin-dev/-/blob/main/doc/microshift.md
+
+#### RTMPサーバへの接続
+
+
+OBSやスマホアプリなどRTMP配信できるツールを用いて、`nginx-rtmp`へアクセスします。
+URLは、`nginx-rtmp`のNodePortへ以下の通り設定してください。
+
+URL
 ```
-apt install -y curl jq runc iptables conntrack nvidia-container-runtime nvidia-container-toolkit
-```
-
-firewalldを無効化:
-
-```
-systemctl disable --now firewalld
-```
-
-CRI-O 1.21をインストール:
-
-```
-curl https://raw.githubusercontent.com/cri-o/cri-o/v1.21.7/scripts/get | bash
-
+rtmp://$MICROSHIFT_IP:<NodePort>/live
 ```
 
-NVIDIA Container Runtimeを設定：
-
-
+ストリーミングキー
 ```
-rm /etc/crio/crio.conf.d/*
-
-cat << EOF > /etc/crio/crio.conf.d/10-nvidia-runtime.conf
-[crio.runtime]
-default_runtime = "nvidia"
-
-[crio.runtime.runtimes.nvidia]
-runtime_path = "/usr/bin/nvidia-container-runtime"
-EOF
-
-cat << EOF > /etc/crio/crio.conf.d/01-crio-runc.conf
-[crio.runtime.runtimes.runc]
-runtime_path = "/usr/sbin/runc"
-runtime_type = "oci"
-runtime_root = "/run/runc"
-EOF
-
-rm -rf /etc/cni/net.d/10-crio-bridge.conf
+test
 ```
 
-MicroShiftバイナリをインストール：
-
-```
-export ARCH=arm64
-export VERSION=4.8.0-0.microshift-2022-02-02-194009
-
-curl -LO https://github.com/redhat-et/microshift/releases/download/$VERSION/microshift-linux-${ARCH}
-mv microshift-linux-${ARCH} /usr/bin/microshift; chmod 755 /usr/bin/microshift
-```
-MicroShiftのsystemd Serviceを作成：
-
-```
-cat << EOF > /usr/lib/systemd/system/microshift.service
-[Unit]
-Description=MicroShift
-After=crio.service
-
-[Service]
-WorkingDirectory=/usr/bin/
-ExecStart=/usr/bin/microshift run
-Restart=always
-User=root
-
-[Install]
-WantedBy=multi-user.target
-EOF
-```
-
-CRI-OとMicroShiftを起動：
-
-```
-systemctl enable crio --now
-systemctl enable microshift.service --now
-```
-
-CLIコマンド(`oc`)をインストール：
-
-```
-curl -LO https://mirror.openshift.com/pub/openshift-v4/arm64/clients/ocp/stable-4.9/openshift-client-linux.tar.gz
-tar xvf openshift-client-linux.tar.gz
-chmod +x oc
-mv oc /usr/local/bin
-```
-
-Kubeconfigを設定：
-
-```
-export KUBECONFIG=/var/lib/microshift/resources/kubeadmin/kubeconfig
-```
-
-MicroShiftが正常起動したら、以下の結果となります。
-
-```
-root@jetson-nx:~# oc get pod -A
-NAMESPACE                       NAME                                  READY   STATUS    RESTARTS   AGE
-kube-system                     kube-flannel-ds-7rz4d                 1/1     Running   0          17h
-kubevirt-hostpath-provisioner   kubevirt-hostpath-provisioner-9m9mc   1/1     Running   0          17h
-openshift-dns                   dns-default-6pbkt                     2/2     Running   0          17h
-openshift-dns                   node-resolver-g4d8g                   1/1     Running   0          17h
-openshift-ingress               router-default-85bcfdd948-tsk29       1/1     Running   0          17h
-openshift-service-ca            service-ca-7764c85869-dvdtm           1/1     Running   0          17h
-
-```
-
-### AI Web App
-
-最後のステップは、顔検出と顔認識を行うAIウェブアプリをデプロイするステップです。
-デプロイされるPodは基本的にFlaskサーバーで、カメラが接続されるとストリームを取得し、個別のフレーム数で処理を開始します。
-
-MicroShift上にAIをデプロイしましょう。
-
-```
-oc new-project ai-for-edge
-oc apply -f webapp.deploy.yaml
-```
-
-数秒待つと・・・
-
-```
-oc get pods
-
-NAME                         READY   STATUS    RESTARTS   AGE
-webapp-67dd6b46fc-bqgbs   1/1     Running   2          2m33s
-```
-
-Routeを確認します。
-
-```
-$ oc get routes
-NAME     HOST/PORT                          PATH   SERVICES   PORT       TERMINATION   WILDCARD
-webapp   webapp-ai-for-edge.cluster.local          webapp     5000-tcp                 None
-```
-
-MicroShiftにはmDNS機能が内蔵されており、このルートは自動的にアナウンスされるため、カメラはこのサービスに登録し、ビデオのストリーミングを開始することができます。
-カムサーバーのログを見ると、このような登録プロセスが見られます。
+RTMP配信した状態で、WebappのRouteのURLへアクセスすると、配信動画がブラウザへ表示されます。
 
 
-```
-oc logs -f deployment/webapp -c webapp
-
-[2022-12-30 12:24:32,647] INFO in faces: Load model from disk: /model/model.data
-[2022-12-30 12:24:32,649] INFO in faces: Known faces loaded from disk.
- * Serving Flask app 'server'
- * Debug mode: off
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5000
- * Running on http://10.85.0.9:5000
-Press CTRL+C to quit
-10.85.0.1 - - [30/Dec/2022 12:24:33] "GET /favicon.ico HTTP/1.1" 404 -
-```
-
-ブラウザを開き、以下のURLへアクセスします：
-
-```
-http://webapp-ai-for-edge.cluster.local
-```
-
-このウェブでは、カメラのフィードが表示され、顔がどのように検出されるかを見ることができる。
-
-![Screenshot](screenshot.png)
-
-## Configuration options
+## Webappへ設定できる環境変数
 
 |環境変数|概要|デフォルト|RHTE 2023設定|Lunch&Learn Munich
 |---|---|---|---|---|
-|`MODEL_FILENAME`|Model to load during startup.|`model.data`|via init container|Default|
-|`VIDEO_DEVICE_ID`|Video device to open:<br/>`cv2.VideoCapture(int(os.environ.get('VIDEO_DEVICE_ID', 0)),cv2.CAP_V4L2)`|`0`|`0`|`0`|
+|`MODEL_FILENAME`|MLモデルのファイル名|`model.data`|init containerでパスがセットアップされます|Default|
+|`VIDEO_STREAM_URL`|RTMPサーバのURL|`rtmp://nginx-rtmp:1935/live/test`|`rtmp://nginx-rtmp:1935/live/test`|`rtmp://nginx-rtmp:1935/live/test`|
 |`CAP_PROP_FRAME_WIDTH`|`cap.set(cv2.CAP_PROP_FRAME_WIDTH()`|`1280`|`800`|`800`|
 |`CAP_PROP_FRAME_HEIGHT`|`cap.set(cv2.CAP_PROP_FRAME_HEIGHT()`|`720`|`600`|`600`|
-|`FACE_RATIO`|Scale down the image to XX<br/>`small_frame = cv2.resize(frame, (0, 0), fx=FACE_RATIO, fy=FACE_RATIO)`|`0.25`|`1`|`1`
-|`FACE_LOC_MODEL`|model – Which face detection model to use: <br/><li>`hog` is less accurate but faster on CPUs.</li><li>`cnn` is a more accurate deep-learning model which is GPU/CUDA accelerated (if available).</li>Python function [face_locations](https://face-recognition.readthedocs.io/en/latest/face_recognition.html#face_recognition.api.face_landmarks)|`hog`|`cnn`|`cnn`|
-|`FACE_LOC_NTU`|**N**umber_f_**T**imes_to_**U**psample – How many times to upsample the image looking for faces. Higher numbers find smaller faces.<br/>Python function [face_locations](https://face-recognition.readthedocs.io/en/latest/face_recognition.html#face_recognition.api.face_landmarks)|`1`|`2`|`2`|
-|`VIDEO_PROCESSING_FPS`|Set amount of FPS they have to capture and process.|`1`|`30`*|`1`|
-|`WEB_LOGLEVEL`|Loglevel for the webapp: `CRITICAL`, `ERROR`, `WARNING`,`INFO` or `DEBUG`|`INFO`|`INFO`|`INFO`|
-*) Because the setting was not available at RHTE 2023
+|`FACE_RATIO`|画像をスケールダウンさせる比率<br/>`small_frame = cv2.resize(frame, (0, 0), fx=FACE_RATIO, fy=FACE_RATIO)`|`0.25`|`1`|`1`
+|`FACE_LOC_MODEL`|顔認識モデル <br/><li>`hog` はCPU上で高速に実行するモデルです</li><li>`cnn` はGPU/CUDA環境でしようします</li>Python function: [face_locations](https://face-recognition.readthedocs.io/en/latest/face_recognition.html#face_recognition.api.face_landmarks)|`hog`|`cnn`|`cnn`|
+|`FACE_LOC_NTU`|**N**umber_f_**T**imes_to_**U**psample – 顔を検出するために使用する画像サンプル数 <br/>Python function: [face_locations](https://face-recognition.readthedocs.io/en/latest/face_recognition.html#face_recognition.api.face_landmarks)|`1`|`2`|`2`|
+|`VIDEO_PROCESSING_FPS`|Frame per Seconds|`1`|`30`*|`1`|
+|`WEB_LOGLEVEL`|Webappのログレベル: `CRITICAL`, `ERROR`, `WARNING`,`INFO` or `DEBUG`|`INFO`|`INFO`|`INFO`|
 
 # JetsonでのWebappの開発
 ## Base Imageの作成
@@ -398,7 +312,7 @@ cd container-images/cpu-only
 ./build-and-push.sh 
 ```
 
-Tekton Pipelineでは、このBase Imageを使用して、Webアプリのコンテナイメージを作成します。
+## ローカルでPodmanを使用した起動
 
 ```bash
 
@@ -434,8 +348,6 @@ WARNING: This is a development server. Do not use it in a production deployment.
  * Running on http://127.0.0.1:5000
  * Running on http://192.168.66.244:5000
 Press CTRL+C to quit
-
-
 ```
 
 ## 異なるバージョンとGPUサポートをチェック
@@ -462,4 +374,5 @@ Press CTRL+C to quit
 
 ## まとめ
 
-このデモは、エッジコンピューティングのシナリオがどのようなものかを示す簡単なユースケースです。Nvidia Jetsonファミリーのような組み込みシステムの上でAI/MLモデルを実行し、MicroShiftでクラウドネイティブ機能を活用します。
+このデモは、エッジコンピューティングのシナリオがどのようなものかを示す簡単なユースケースです。
+Nvidia Jetsonファミリーのような組み込みシステムの上でAI/MLモデルを実行し、MicroShiftでクラウドネイティブ機能を活用します。

@@ -9,4 +9,3 @@ resources:
 - nginx-config.yaml
 - deployment.yaml
 - service.yaml
-- route.yaml

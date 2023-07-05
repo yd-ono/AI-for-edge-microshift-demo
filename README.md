@@ -139,7 +139,8 @@ oc apply -f manifests/face-recognition-notebook.yaml
 
 #### OpenShift PipelinesとOpenShift GitOpsのインストール
 ```bash
-oc apply -k openshift-local/
+oc apply -k openshift-local/pipeline-operator
+oc apply -k openshift-local/gitops-operator
 ```
 
 #### OpenShift GitOpsの準備
@@ -154,19 +155,22 @@ argocd login --username admin --password $PASSWORD $GITOPS_SERVER --insecure
 
 ##### MicroShiftのKubeconfigの取得
 ```bash
+# MicroShiftのノードのIPアドレスを環境変数へ定義
+export MICROSHIFT_IP=xx.xx.xx.xx
+
 # MicroShiftのKubeconfigをローカルへコピー
-scp redhat@microshift.local:/var/lib/microshift/resources/kubeadmin/microshift.local ./
+ssh redhat@microshift.local sudo cat /var/lib/microshift/resources/kubeadmin/microshift.local/kubeconfig > ~/microshift.kubeconfig
 
 # server: https://microshift.local:6443 のホスト名をIPアドレスへ修正
-vi microshift.local
-...
-    server: https://xx.xx.xx.xx:6443
-  name: microshift
-...
+sed -ie "s/microshift.local/$MICROSHIFT_IP/g"  ~/microshift.kubeconfig 
 
-# MicroShiftのIPアドレスとKubeconfigのパスを環境変数へ定義
-export MICROSHIFT_IP=xx.xx.xx.xx
-export KUBECONFIG=microshift.local
+# MicroShiftのKubeconfigのパスを環境変数へ定義
+export KUBECONFIG=~/microshift.kubeconfig
+
+# MicroShiftへ接続できていることを確認
+oc get nodes
+NAME               STATUS   ROLES                         AGE   VERSION
+microshift.local   Ready    control-plane,master,worker   19h   v1.26.3
 ```
 
 ##### ArgoCDへMicroShiftクラスタを追加
@@ -193,7 +197,6 @@ ArgoCD Applicationをapplyします。
 
 コンテナレジストリのデプロイ
 ```bash
-unset KUBECONFIG
 cat openshift-local/registry.application.yaml | envsubst | oc apply -f -
 ```
 
@@ -208,10 +211,11 @@ cat openshift-local/ai-for-edge-webapp.application.yaml | envsubst | oc apply -f
 ```
 
 ##### エッジデバイス上で実行されるCRI-Oがローカルのコンテナレジストリへアクセスできるようにする
+以降の手順はMicroShift側で作業します。
 
 MicroShiftの`/etc/hosts`へローカルレジストリのURLを追記します。
 ```bash
-echo "xx.xx.xx.xx default-registry.cluster.local" >> /etc/hosts
+echo "xx.xx.xx.xx default-registry.cluster.local" >> /etc/hosts"
 ```
 
 そして、`/etc/crio/crio.conf`へ作成したローカルレジストリを`insecure registry`として追記します。
@@ -273,8 +277,6 @@ NVIDIA JetsonへのMicroShiftのインストール方法は、以下のサイト
 https://gitlab.com/yono1/microshift-orin-dev/-/blob/main/doc/microshift.md
 
 #### RTMPサーバへの接続
-
-
 OBSやスマホアプリなどRTMP配信できるツールを用いて、`nginx-rtmp`へアクセスします。
 URLは、`nginx-rtmp`のNodePortへ以下の通り設定してください。
 

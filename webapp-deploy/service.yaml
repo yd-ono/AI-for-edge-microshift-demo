@@ -12,6 +12,7 @@ metadata:
     app.kubernetes.io/part-of: python
     app.openshift.io/runtime: python
   name: webapp
+  namespace: ai-for-edge
 spec:
   internalTrafficPolicy: Cluster
   ipFamilies:

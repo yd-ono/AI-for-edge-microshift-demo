@@ -4,8 +4,9 @@ kind: Kustomization
 namespace: ai-for-edge
 
 resources:
+- namespace.yaml
+- serviceaccount.yaml
 - clusterrolebinding.yaml
 - deployment.yaml
 - route.yaml
 - service.yaml
-- serviceaccount.yaml

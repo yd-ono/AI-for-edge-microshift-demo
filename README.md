@@ -7,7 +7,7 @@
 
 ![Overview](overview.png)
 
-![movie](https://drive.google.com/uc?export=view&id=11XCdK7lRsI8mKyMBo2GQk34YXqqzvi3c)
+![movie](https://drive.google.com/uc?export=view&id=14ic-ifw9rjzrMq6ADD4mK2gXB-niPXii)
 
 リポジトリには、以下のコンテンツが含まれます。
 

@@ -7,7 +7,7 @@
 
 ![Overview](overview.png)
 
-![movie](https://drive.google.com/uc?export=view&id=14ic-ifw9rjzrMq6ADD4mK2gXB-niPXii)
+https://drive.google.com/file/d/14ic-ifw9rjzrMq6ADD4mK2gXB-niPXii/view?usp=sharing
 
 リポジトリには、以下のコンテンツが含まれます。
 

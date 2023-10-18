@@ -7,7 +7,8 @@
 
 ![Overview](overview.png)
 
-![movie](https://drive.google.com/uc?export=view&id=1Dt7UqAVdLi4Tmu1Xz9HO8dWtMHUkElJ-)
+
+https://github.com/yd-ono/AI-for-edge-microshift-demo/assets/46139874/dcb1f15f-1680-4bd1-a00b-76f21048c988
 
 
 リポジトリには、以下のコンテンツが含まれます。

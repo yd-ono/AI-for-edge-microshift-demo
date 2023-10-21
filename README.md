@@ -85,10 +85,6 @@ https://openshift-gitops-server-openshift-gitops.apps-crc.testing/applications/o
 
 http://webapp-ai-for-edge.cluster.local/
 
-### デモ動画
-
-[![AI for edge deom video](https://img.youtube.com/vi/8dHpNAPSgZ0/0.jpg)](https://www.youtube.com/watch?v=8dHpNAPSgZ0 "AI for edge deom video")
-
 ## ハードウェア環境のセットアップ
 
 ![hardware-set-up](hardware-set-up.png)
